@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kanban & Timeline - Office 365 style</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="app-icon">K</div>
+      <div class="app-title-group">
+        <h1 class="app-title">Kanban Planner</h1>
+        <span class="app-subtitle">Stile Office 365 • Static Web App</span>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="project-switcher">
+        <label for="projectSelect">Progetto:</label>
+        <select id="projectSelect"></select>
+        <button
+          type="button"
+          id="addProjectButton"
+          class="btn btn-ghost btn-project-add"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          id="projectMenuButton"
+          class="btn btn-ghost btn-project-menu"
+          title="Opzioni progetto"
+        >
+          ⋮
+        </button>
+      </div>
+
+      <button class="btn btn-light" data-view-button data-target-view="kanban">
+        Kanban
+      </button>
+      <button class="btn btn-ghost" data-view-button data-target-view="timeline">
+        Timeline
+      </button>
+
+      <!-- menu a tendina progetto -->
+<div id="projectMenu" class="project-menu hidden">
+  <button type="button" data-action="rename">Rinomina progetto</button>
+  <button type="button" data-action="delete">Elimina progetto</button>
+  <button type="button" data-action="cleanDone">Archivia completati</button>
+  <button type="button" data-action="export">Esporta JSON</button>
+  <button type="button" data-action="import">Importa JSON</button>
+</div>
+
+      <!-- input file nascosto per import -->
+      <input
+        type="file"
+        id="projectImportInput"
+        accept="application/json"
+        class="hidden"
+      />
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Contenuto principale (a sinistra) -->
+    <section class="content">
+   <div class="content-toolbar">
+  <div class="search-bar">
+    <input
+      type="search"
+      id="taskSearch"
+      placeholder="Cerca per titolo, descrizione o stato..."
+    />
+  </div>
+
+  <label class="compact-toggle">
+    <input type="checkbox" id="compactToggle" />
+    Vista compatta
+  </label>
+</div>
+
+
+      <!-- Vista Kanban -->
+      <div id="kanbanView" class="view view-active">
+        <div class="kanban" id="kanbanBoard">
+          <div class="kanban-column" data-status="todo">
+            <header class="kanban-column-header">
+              <button
+                type="button"
+                class="column-toggle"
+                aria-label="Collassa/espandi colonna"
+              >
+                ⯇
+              </button>
+              <h2>Da fare</h2>
+              <span class="column-count" data-count="todo">0</span>
+            </header>
+            <div class="kanban-items" data-status="todo"></div>
+          </div>
+
+          <div class="kanban-column" data-status="inprogress">
+            <header class="kanban-column-header">
+              <button
+                type="button"
+                class="column-toggle"
+                aria-label="Collassa/espandi colonna"
+              >
+                ⯇
+              </button>
+              <h2>In corso</h2>
+              <span class="column-count" data-count="inprogress">0</span>
+            </header>
+            <div class="kanban-items" data-status="inprogress"></div>
+          </div>
+
+          <div class="kanban-column" data-status="pending">
+            <header class="kanban-column-header">
+              <button
+                type="button"
+                class="column-toggle"
+                aria-label="Collassa/espandi colonna"
+              >
+                ⯇
+              </button>
+              <h2>Pending</h2>
+              <span class="column-count" data-count="pending">0</span>
+            </header>
+            <div class="kanban-items" data-status="pending"></div>
+          </div>
+
+          <div class="kanban-column" data-status="done">
+            <header class="kanban-column-header">
+              <button
+                type="button"
+                class="column-toggle"
+                aria-label="Collassa/espandi colonna"
+              >
+                ⯇
+              </button>
+              <h2>Completato</h2>
+              <span class="column-count" data-count="done">0</span>
+            </header>
+            <div class="kanban-items" data-status="done"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vista Timeline -->
+      <div id="timelineView" class="view">
+        <div class="timeline-header">
+          <h2>Timeline attività</h2>
+          <p class="timeline-desc">
+            Mostra solo le attività con data di scadenza valida, ordinate
+            cronologicamente.
+          </p>
+        </div>
+        <div id="timelineContainer" class="timeline"></div>
+      </div>
+    </section>
+
+    <!-- Sidebar: crea/modifica attività (a destra) -->
+    <aside class="sidebar">
+      <h2 id="formTitle">Nuova attività</h2>
+      <form id="taskForm" autocomplete="off">
+        <input type="hidden" id="taskId" />
+
+        <label class="field">
+          <span>Titolo</span>
+          <input
+            type="text"
+            id="taskTitle"
+            required
+            placeholder="Es. Scrivere documentazione"
+          />
+        </label>
+
+        <label class="field">
+          <span>Descrizione</span>
+          <textarea
+            id="taskDescription"
+            rows="3"
+            placeholder="Dettagli, note, link, ecc."
+          ></textarea>
+        </label>
+
+        <label class="field">
+          <span>Scadenza</span>
+          <input type="date" id="taskDueDate" />
+        </label>
+
+        <label class="field">
+          <span>Colonna</span>
+          <select id="taskStatus">
+            <option value="todo">Da fare</option>
+            <option value="inprogress">In corso</option>
+            <option value="pending">Pending</option>
+            <option value="done">Completato</option>
+          </select>
+        </label>
+
+        <button
+          type="submit"
+          id="taskSubmitButton"
+          class="btn btn-primary full-width"
+        >
+          Aggiungi attività
+        </button>
+
+        <button
+          type="button"
+          id="taskCancelEdit"
+          class="btn btn-ghost full-width small hidden"
+        >
+          Annulla modifica
+        </button>
+
+        <button
+          type="button"
+          id="resetBoard"
+          class="btn btn-ghost full-width small"
+        >
+          Ripristina esempio iniziale
+        </button>
+      </form>
+
+      <p class="hint">
+        Suggerimento: fai <strong>doppio click</strong> su una card nella Kanban
+        per modificarla. I dati vengono salvati in
+        <strong>localStorage</strong>.
+      </p>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    <span>Kanban &amp; Timeline • Static app compatibile con GitHub Pages • UI ispirata a Microsoft 365</span>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
