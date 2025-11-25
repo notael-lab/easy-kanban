@@ -4,18 +4,18 @@
 const PROJECTS_KEY = "kanbanProjects_v1";
 const COMPACT_VIEW_KEY = "kanbanCompactView_v1";
 
-
-let projects = {};          // { id: { id, name, tasks, columnState } }
+let projects = {};          // { id: { id, name, tasks, columnState, milestones, roadmapScale } }
 let currentProjectId = null;
 
 let tasks = [];             // task del progetto corrente
 let columnState = {};       // stato colonne del progetto corrente
+let milestones = [];        // milestone del progetto corrente
+let roadmapScale = "months";
 
 let draggedTaskId = null;
 let editingTaskId = null;
-let searchTerm = "";        // testo di ricerca corrente
+let searchTerm = "";
 let compactView = false;
-
 
 // =========================
 // Utility dati progetti
@@ -70,6 +70,30 @@ function getSampleTasks() {
   ];
 }
 
+function getDefaultMilestones() {
+  const today = new Date();
+  const addDays = (d) => {
+    const n = new Date(today);
+    n.setDate(n.getDate() + d);
+    return n.toISOString().slice(0, 10);
+  };
+
+  return [
+    {
+      id: "m1",
+      title: "Kickoff progetto",
+      description: "Allineamento iniziale",
+      date: addDays(-3),
+    },
+    {
+      id: "m2",
+      title: "MVP pronto",
+      description: "Prima demo funzionante",
+      date: addDays(5),
+    },
+  ];
+}
+
 function ensureColumnStateDefaults(obj) {
   if (!obj || typeof obj !== "object") obj = {};
   ["todo", "inprogress", "pending", "done"].forEach((s) => {
@@ -80,6 +104,17 @@ function ensureColumnStateDefaults(obj) {
   return obj;
 }
 
+function normalizeProject(p, isDefault = false) {
+  if (!p) p = {};
+  if (!Array.isArray(p.tasks)) p.tasks = [];
+  p.columnState = ensureColumnStateDefaults(p.columnState);
+  if (!Array.isArray(p.milestones)) {
+    p.milestones = isDefault ? getDefaultMilestones() : [];
+  }
+  if (!p.roadmapScale) p.roadmapScale = "months";
+  return p;
+}
+
 // Carica TUTTO (progetti + progetto corrente) da localStorage
 function loadData() {
   try {
@@ -88,12 +123,23 @@ function loadData() {
       const parsed = JSON.parse(raw);
       if (parsed && parsed.projects && Object.keys(parsed.projects).length > 0) {
         projects = parsed.projects;
+
+        // normalizza tutti i progetti
+        Object.keys(projects).forEach((id) => {
+          projects[id] = normalizeProject(projects[id]);
+          projects[id].id = id;
+        });
+
         currentProjectId =
           parsed.currentProjectId || Object.keys(projects)[0];
 
         const current = projects[currentProjectId];
         tasks = Array.isArray(current.tasks) ? current.tasks : [];
         columnState = ensureColumnStateDefaults(current.columnState);
+        milestones = Array.isArray(current.milestones)
+          ? current.milestones
+          : [];
+        roadmapScale = current.roadmapScale || "months";
         return;
       }
     }
@@ -102,17 +148,24 @@ function loadData() {
   }
 
   // Fallback: un progetto demo di default
-  const defaultProject = {
-    id: "default",
-    name: "Progetto demo",
-    tasks: getSampleTasks(),
-    columnState: getDefaultColumnState(),
-  };
+  const defaultProject = normalizeProject(
+    {
+      id: "default",
+      name: "Progetto demo",
+      tasks: getSampleTasks(),
+      columnState: getDefaultColumnState(),
+      milestones: getDefaultMilestones(),
+      roadmapScale: "months",
+    },
+    true
+  );
 
   projects = { [defaultProject.id]: defaultProject };
   currentProjectId = defaultProject.id;
   tasks = defaultProject.tasks;
   columnState = defaultProject.columnState;
+  milestones = defaultProject.milestones;
+  roadmapScale = defaultProject.roadmapScale;
 
   saveData();
 }
@@ -123,18 +176,23 @@ function saveData() {
     currentProjectId = Object.keys(projects)[0] || "default";
   }
   if (!projects[currentProjectId]) {
-    projects[currentProjectId] = {
-      id: currentProjectId,
-      name: "Progetto " + currentProjectId,
-      tasks: [],
-      columnState: getDefaultColumnState(),
-    };
+    projects[currentProjectId] = normalizeProject(
+      {
+        id: currentProjectId,
+        name: "Progetto " + currentProjectId,
+      },
+      false
+    );
   }
 
   projects[currentProjectId].tasks = tasks;
   projects[currentProjectId].columnState = ensureColumnStateDefaults(
     columnState
   );
+  projects[currentProjectId].milestones = Array.isArray(milestones)
+    ? milestones
+    : [];
+  projects[currentProjectId].roadmapScale = roadmapScale || "months";
 
   const payload = {
     projects,
@@ -146,6 +204,14 @@ function saveData() {
   } catch (e) {
     console.warn("Impossibile salvare dati progetti", e);
   }
+}
+
+function saveTasks() {
+  saveData();
+}
+
+function saveColumnState() {
+  saveData();
 }
 
 // =========================
@@ -163,9 +229,7 @@ function loadCompactViewPreference() {
 function saveCompactViewPreference() {
   try {
     localStorage.setItem(COMPACT_VIEW_KEY, compactView ? "1" : "0");
-  } catch (e) {
-    // ignoriamo eventuali errori
-  }
+  } catch (e) {}
 }
 
 function applyCompactView() {
@@ -191,15 +255,6 @@ function setupCompactToggle() {
     applyCompactView();
     saveCompactViewPreference();
   });
-}
-
-
-function saveTasks() {
-  saveData();
-}
-
-function saveColumnState() {
-  saveData();
 }
 
 // =========================
@@ -258,6 +313,62 @@ function matchesSearch(task) {
   ).toLowerCase();
   return haystack.includes(searchTerm);
 }
+
+// helper date
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function startOfWeek(date) {
+  const d = new Date(date);
+  const day = d.getDay(); // 0=dom, 1=lun...
+  const diff = (day + 6) % 7; // distanza dal lunedì
+  d.setDate(d.getDate() - diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function endOfWeek(date) {
+  const s = startOfWeek(date);
+  s.setDate(s.getDate() + 6);
+  s.setHours(23, 59, 59, 999);
+  return s;
+}
+
+function startOfMonth(date) {
+  const d = new Date(date);
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
+function endOfMonth(date) {
+  const d = new Date(date);
+  return new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+
+function startOfQuarter(date) {
+  const d = new Date(date);
+  const quarterIndex = Math.floor(d.getMonth() / 3); // 0..3
+  return new Date(d.getFullYear(), quarterIndex * 3, 1);
+}
+
+function endOfQuarter(date) {
+  const d = new Date(date);
+  const quarterIndex = Math.floor(d.getMonth() / 3);
+  return new Date(d.getFullYear(), quarterIndex * 3 + 3, 0, 23, 59, 59, 999);
+}
+
+function getISOWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  // Giovedì della settimana determina l'anno ISO
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const diff = (d - yearStart) / 86400000 + 1; // giorni dall'inizio dell'anno
+  return Math.ceil(diff / 7);
+}
+
 
 // =========================
 // Modalità modifica task
@@ -358,7 +469,7 @@ function createKanbanCard(task) {
   deleteBtn.type = "button";
   deleteBtn.className = "icon-button icon-button-danger";
   deleteBtn.title = "Elimina attività";
-  deleteBtn.textContent = "🗑";
+  deleteBtn.textContent = "x";
 
   deleteBtn.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -505,7 +616,7 @@ function setupColumnCollapse() {
 }
 
 // =========================
-// Rendering Timeline
+// Rendering Timeline (task)
 // =========================
 function renderTimeline() {
   const container = document.getElementById("timelineContainer");
@@ -587,6 +698,307 @@ function createTimelineCard(task) {
 }
 
 // =========================
+// Roadmap (Milestone orizzontali)
+// =========================
+function getValidMilestones() {
+  return (milestones || []).filter((m) => isValidDateString(m.date));
+}
+
+function createMilestoneChip(m) {
+  const chip = document.createElement("div");
+  chip.className = "roadmap-milestone";
+  chip.dataset.id = m.id;
+
+  // Icona segnalibro (niente testo visibile)
+  const iconSpan = document.createElement("span");
+  iconSpan.className = "roadmap-milestone-icon";
+  iconSpan.textContent = "▲";
+  iconSpan.setAttribute("aria-hidden", "true");
+
+  const delBtn = document.createElement("button");
+  delBtn.type = "button";
+  delBtn.className = "icon-button icon-button-danger roadmap-milestone-delete";
+  delBtn.textContent = "x";
+  delBtn.title = "Elimina milestone";
+
+  delBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!confirm(`Vuoi davvero eliminare la milestone:\n"${m.title}"?`)) {
+      return;
+    }
+    milestones = milestones.filter((x) => x.id !== m.id);
+    saveData();
+    renderRoadmap();
+  });
+
+  chip.appendChild(iconSpan);
+  chip.appendChild(delBtn);
+
+  // tooltip con tutte le info
+  chip.title = `${m.title} – ${formatDate(m.date)}${
+    m.description ? "\n" + m.description : ""
+  }`;
+
+  // doppio click per modificare
+  chip.addEventListener("dblclick", () => {
+    editMilestone(m.id);
+  });
+
+  return chip;
+}
+
+function editMilestone(id) {
+  const m = milestones.find((x) => x.id === id);
+  if (!m) return;
+
+  const newTitle = prompt("Titolo milestone:", m.title);
+  if (newTitle === null) return;
+  const trimmedTitle = newTitle.trim();
+  if (!trimmedTitle) return;
+
+  const newDate = prompt(
+    "Data milestone (YYYY-MM-DD):",
+    m.date || ""
+  );
+  if (newDate === null) return;
+  const dateTrim = newDate.trim();
+  if (!isValidDateString(dateTrim)) {
+    alert("Data non valida. Formato atteso: YYYY-MM-DD.");
+    return;
+  }
+
+  const newDesc = prompt(
+    "Descrizione (opzionale):",
+    m.description || ""
+  );
+  if (newDesc === null) return;
+
+  m.title = trimmedTitle;
+  m.date = dateTrim;
+  m.description = newDesc.trim();
+
+  saveData();
+  renderRoadmap();
+}
+
+function renderRoadmap() {
+  const container = document.getElementById("roadmapTimeline");
+  const scaleSelect = document.getElementById("roadmapScale");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (scaleSelect) {
+    scaleSelect.value = roadmapScale;
+  }
+
+  const items = getValidMilestones();
+
+  if (!items.length) {
+    const p = document.createElement("p");
+    p.className = "roadmap-empty";
+    p.textContent =
+      'Nessuna milestone definita. Usa "+ Milestone" per aggiungerne una.';
+    container.appendChild(p);
+    return;
+  }
+
+  // Ordina per data
+  items.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  let minDate = new Date(items[0].date);
+  let maxDate = new Date(items[items.length - 1].date);
+
+  // Piccolo margine
+  minDate = addDays(minDate, -7);
+  maxDate = addDays(maxDate, 7);
+
+  const cells = [];
+
+  if (roadmapScale === "weeks") {
+    let currentStart = startOfWeek(minDate);
+    const end = endOfWeek(maxDate);
+
+    while (currentStart <= end) {
+      const start = new Date(currentStart);
+      const endWeek = endOfWeek(start);
+
+      const weekNumber = getISOWeekNumber(start);
+      const label = `W${weekNumber}`; // numero settimana reale
+
+      cells.push({ start, end: endWeek, label, milestones: [] });
+
+      currentStart = addDays(start, 7);
+    }
+  } else if (roadmapScale === "months") {
+    let cursor = startOfMonth(minDate);
+    const end = endOfMonth(maxDate);
+
+    while (cursor <= end) {
+      const start = new Date(cursor);
+      const endMonth = endOfMonth(start);
+      const label = start.toLocaleDateString("it-IT", {
+        month: "short",
+        year: "numeric",
+      });
+      cells.push({ start, end: endMonth, label, milestones: [] });
+      cursor = new Date(start.getFullYear(), start.getMonth() + 1, 1);
+    }
+  } else if (roadmapScale === "quarters") {
+    let cursor = startOfQuarter(minDate);
+    const end = endOfQuarter(maxDate);
+
+    while (cursor <= end) {
+      const start = new Date(cursor);
+      const endQuarter = endOfQuarter(start);
+      const quarterIndex = Math.floor(start.getMonth() / 3); // 0..3
+      const q = quarterIndex + 1;
+      const label = `Q${q} ${start.getFullYear()}`;
+      cells.push({ start, end: endQuarter, label, milestones: [] });
+
+      // passa al trimestre successivo
+      cursor = new Date(start.getFullYear(), quarterIndex * 3 + 3, 1);
+    }
+  }
+
+  // Assegna milestone alle celle
+  items.forEach((m) => {
+    const d = new Date(m.date);
+    for (const cell of cells) {
+      if (d >= cell.start && d <= cell.end) {
+        cell.milestones.push(m);
+        break;
+      }
+    }
+  });
+
+  const grid = document.createElement("div");
+  grid.className = "roadmap-grid";
+
+  const labelsRow = document.createElement("div");
+  labelsRow.className = "roadmap-row roadmap-row-labels";
+
+  const milestonesRow = document.createElement("div");
+  milestonesRow.className = "roadmap-row roadmap-row-milestones";
+
+  // Trova la cella corrispondente ad "oggi"
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let todayCellIndex = -1;
+
+  cells.forEach((cell, index) => {
+    const start = new Date(cell.start);
+    const end = new Date(cell.end);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
+    if (today >= start && today <= end && todayCellIndex === -1) {
+      todayCellIndex = index;
+    }
+  });
+
+  cells.forEach((cell, index) => {
+    const labelCell = document.createElement("div");
+    labelCell.className = "roadmap-cell roadmap-cell-label";
+    labelCell.textContent = cell.label;
+
+    // Tooltip per la scala "weeks": mostra data di inizio settimana (DD-MM-YYYY)
+    if (roadmapScale === "weeks" && cell.start instanceof Date) {
+      const d = cell.start;
+      const dd = String(d.getDate()).padStart(2, "0");
+      const mm = String(d.getMonth() + 1).padStart(2, "0");
+      const yyyy = d.getFullYear();
+      labelCell.title = `Inizio settimana: ${dd}-${mm}-${yyyy}`;
+    }
+
+    // Evidenzia la label della cella di oggi (opzionale, ma utile)
+    if (index === todayCellIndex) {
+      labelCell.classList.add("roadmap-cell-today");
+    }
+
+    labelsRow.appendChild(labelCell);
+
+    const mCell = document.createElement("div");
+    mCell.className = "roadmap-cell roadmap-cell-milestones";
+
+    // Pallino rosso per "oggi"
+    if (index === todayCellIndex) {
+      const todayMarker = document.createElement("div");
+      todayMarker.className = "roadmap-today-marker";
+      todayMarker.title = "Oggi";
+      mCell.appendChild(todayMarker);
+    }
+
+    cell.milestones.forEach((m) => {
+      mCell.appendChild(createMilestoneChip(m));
+    });
+
+    milestonesRow.appendChild(mCell);
+  });
+
+  grid.appendChild(labelsRow);
+  grid.appendChild(milestonesRow);
+  container.appendChild(grid);
+
+  // Scroll automatico per portare la cella di oggi in vista
+  if (todayCellIndex >= 0) {
+    const labelCell = labelsRow.children[todayCellIndex];
+    if (labelCell) {
+      const targetCenter =
+        labelCell.offsetLeft +
+        labelCell.offsetWidth / 2 -
+        container.clientWidth / 2;
+      container.scrollLeft = Math.max(0, targetCenter);
+    }
+  }
+}
+
+
+function setupRoadmapControls() {
+  const scaleSelect = document.getElementById("roadmapScale");
+  const addBtn = document.getElementById("addMilestoneButton");
+
+  if (scaleSelect) {
+    scaleSelect.value = roadmapScale;
+    scaleSelect.addEventListener("change", () => {
+      roadmapScale = scaleSelect.value || "months";
+      saveData();
+      renderRoadmap();
+    });
+  }
+
+  if (addBtn) {
+    addBtn.addEventListener("click", () => {
+      const title = prompt("Titolo della milestone:");
+      if (title === null) return;
+      const trimmedTitle = title.trim();
+      if (!trimmedTitle) return;
+
+      const dateStr = prompt("Data della milestone (YYYY-MM-DD):");
+      if (dateStr === null) return;
+      const trimmedDate = dateStr.trim();
+      if (!isValidDateString(trimmedDate)) {
+        alert("Data non valida. Formato atteso: YYYY-MM-DD.");
+        return;
+      }
+
+      const desc = prompt("Descrizione (opzionale):") || "";
+
+      const newMilestone = {
+        id: "m" + Date.now().toString(),
+        title: trimmedTitle,
+        description: desc.trim(),
+        date: trimmedDate,
+      };
+
+      milestones.push(newMilestone);
+      saveData();
+      renderRoadmap();
+    });
+  }
+}
+
+// =========================
 // Gestione form
 // =========================
 function setupForm() {
@@ -648,9 +1060,12 @@ function setupForm() {
     ) {
       tasks = getSampleTasks();
       columnState = getDefaultColumnState();
+      milestones = getDefaultMilestones();
+      roadmapScale = "months";
       saveData();
       renderKanban();
       renderTimeline();
+      renderRoadmap();
       refreshColumnCollapseUI();
       exitEditMode();
     }
@@ -742,9 +1157,14 @@ function switchProject(newId) {
 
   currentProjectId = newId;
 
-  const current = projects[currentProjectId];
+  const current = normalizeProject(projects[currentProjectId]);
+  projects[currentProjectId] = current;
+
   tasks = Array.isArray(current.tasks) ? current.tasks : [];
   columnState = ensureColumnStateDefaults(current.columnState);
+  milestones = Array.isArray(current.milestones) ? current.milestones : [];
+  roadmapScale = current.roadmapScale || "months";
+
   editingTaskId = null;
   exitEditMode();
 
@@ -752,11 +1172,12 @@ function switchProject(newId) {
   const searchInput = document.getElementById("taskSearch");
   if (searchInput) searchInput.value = "";
 
+  renderProjectSelect();
   renderKanban();
   renderTimeline();
+  renderRoadmap();
   refreshColumnCollapseUI();
-  saveData(); // per salvare eventuali default colState
-  renderProjectSelect();
+  saveData(); // per salvare eventuali default colState/milestones/roadmapScale
 }
 
 function setupProjectSelector() {
@@ -793,16 +1214,23 @@ function setupProjectSelector() {
         id = idBase + "-" + suffix++;
       }
 
-      projects[id] = {
-        id,
-        name: trimmed,
-        tasks: [],
-        columnState: getDefaultColumnState(),
-      };
+      projects[id] = normalizeProject(
+        {
+          id,
+          name: trimmed,
+          tasks: [],
+          columnState: getDefaultColumnState(),
+          milestones: [],
+          roadmapScale: "months",
+        },
+        false
+      );
 
       currentProjectId = id;
       tasks = [];
       columnState = getDefaultColumnState();
+      milestones = [];
+      roadmapScale = "months";
       searchTerm = "";
       const searchInput = document.getElementById("taskSearch");
       if (searchInput) searchInput.value = "";
@@ -811,6 +1239,7 @@ function setupProjectSelector() {
       renderProjectSelect();
       renderKanban();
       renderTimeline();
+      renderRoadmap();
       refreshColumnCollapseUI();
       exitEditMode();
     });
@@ -818,7 +1247,7 @@ function setupProjectSelector() {
 }
 
 // =========================
-// Rinomina / Elimina / Export / Import progetto
+// Rinomina / Elimina / Export / Import / Archivia progetto
 // =========================
 function renameCurrentProject() {
   if (!currentProjectId || !projects[currentProjectId]) return;
@@ -849,7 +1278,7 @@ function deleteCurrentProject() {
 
   if (
     !confirm(
-      `Vuoi davvero eliminare il progetto "${name}"?\nTutte le attività collegate andranno perse.`
+      `Vuoi davvero eliminare il progetto "${name}"?\nTutte le attività e le milestone collegate andranno perse.`
     )
   ) {
     return;
@@ -859,10 +1288,13 @@ function deleteCurrentProject() {
 
   const newId = Object.keys(projects)[0];
   currentProjectId = newId;
-  const p = projects[newId];
+  const p = normalizeProject(projects[newId]);
+  projects[newId] = p;
 
   tasks = Array.isArray(p.tasks) ? p.tasks : [];
   columnState = ensureColumnStateDefaults(p.columnState);
+  milestones = Array.isArray(p.milestones) ? p.milestones : [];
+  roadmapScale = p.roadmapScale || "months";
   editingTaskId = null;
   exitEditMode();
 
@@ -874,105 +1306,8 @@ function deleteCurrentProject() {
   renderProjectSelect();
   renderKanban();
   renderTimeline();
+  renderRoadmap();
   refreshColumnCollapseUI();
-}
-
-function exportCurrentProjectAsJSON() {
-  if (!currentProjectId || !projects[currentProjectId]) return;
-  const data = projects[currentProjectId];
-
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-
-  const safeName = (data.name || data.id || "progetto")
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9\-]/g, "");
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `kanban-${safeName || "progetto"}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function importProjectFromJSON(file) {
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const text = e.target.result;
-      const parsed = JSON.parse(text);
-
-      // Caso 1: oggetto progetto esportato
-      if (parsed && typeof parsed === "object" && !Array.isArray(parsed) && Array.isArray(parsed.tasks)) {
-        const baseName = parsed.name || parsed.id || "Progetto importato";
-        let idBase = (parsed.id || baseName)
-          .toLowerCase()
-          .replace(/\s+/g, "-")
-          .replace(/[^a-z0-9\-]/g, "");
-        if (!idBase) idBase = "progetto-importato";
-        let id = idBase;
-        let suffix = 1;
-        while (projects[id]) {
-          id = idBase + "-" + suffix++;
-        }
-
-        projects[id] = {
-          id,
-          name: baseName,
-          tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
-          columnState: ensureColumnStateDefaults(parsed.columnState),
-        };
-
-        currentProjectId = id;
-        tasks = projects[id].tasks;
-        columnState = projects[id].columnState;
-        searchTerm = "";
-        const searchInput = document.getElementById("taskSearch");
-        if (searchInput) searchInput.value = "";
-
-        saveData();
-        renderProjectSelect();
-        renderKanban();
-        renderTimeline();
-        refreshColumnCollapseUI();
-        exitEditMode();
-        alert(`Progetto importato come "${baseName}".`);
-        return;
-      }
-
-      // Caso 2: lista di task da applicare al progetto corrente
-      if (Array.isArray(parsed)) {
-        tasks = parsed;
-        columnState = getDefaultColumnState();
-        searchTerm = "";
-        const searchInput = document.getElementById("taskSearch");
-        if (searchInput) searchInput.value = "";
-        saveData();
-        renderKanban();
-        renderTimeline();
-        refreshColumnCollapseUI();
-        exitEditMode();
-        alert("Attività importate nel progetto corrente.");
-        return;
-      }
-
-      alert(
-        "JSON non valido: atteso un progetto esportato (con proprietà 'tasks') o un array di attività."
-      );
-    } catch (err) {
-      console.error(err);
-      alert("Errore durante la lettura del file JSON.");
-    }
-  };
-
-  reader.readAsText(file);
 }
 
 function archiveCompletedTasks() {
@@ -1010,6 +1345,122 @@ function archiveCompletedTasks() {
   renderTimeline();
 }
 
+function exportCurrentProjectAsJSON() {
+  if (!currentProjectId || !projects[currentProjectId]) return;
+  const data = projects[currentProjectId];
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+
+  const safeName = (data.name || data.id || "progetto")
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9\-]/g, "");
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `kanban-${safeName || "progetto"}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importProjectFromJSON(file) {
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const text = e.target.result;
+      const parsed = JSON.parse(text);
+
+      // Caso 1: oggetto progetto esportato
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        !Array.isArray(parsed) &&
+        Array.isArray(parsed.tasks)
+      ) {
+        const baseName = parsed.name || parsed.id || "Progetto importato";
+        let idBase = (parsed.id || baseName)
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9\-]/g, "");
+        if (!idBase) idBase = "progetto-importato";
+        let id = idBase;
+        let suffix = 1;
+        while (projects[id]) {
+          id = idBase + "-" + suffix++;
+        }
+
+        projects[id] = normalizeProject(
+          {
+            id,
+            name: baseName,
+            tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
+            columnState: parsed.columnState,
+            milestones: Array.isArray(parsed.milestones)
+              ? parsed.milestones
+              : [],
+            roadmapScale: parsed.roadmapScale || "months",
+          },
+          false
+        );
+
+        currentProjectId = id;
+        const current = projects[id];
+        tasks = current.tasks;
+        columnState = current.columnState;
+        milestones = current.milestones;
+        roadmapScale = current.roadmapScale;
+        searchTerm = "";
+        const searchInput = document.getElementById("taskSearch");
+        if (searchInput) searchInput.value = "";
+
+        saveData();
+        renderProjectSelect();
+        renderKanban();
+        renderTimeline();
+        renderRoadmap();
+        refreshColumnCollapseUI();
+        exitEditMode();
+        alert(`Progetto importato come "${baseName}".`);
+        return;
+      }
+
+      // Caso 2: lista di task da applicare al progetto corrente
+      if (Array.isArray(parsed)) {
+        tasks = parsed;
+        columnState = getDefaultColumnState();
+        milestones = [];
+        roadmapScale = "months";
+        searchTerm = "";
+        const searchInput = document.getElementById("taskSearch");
+        if (searchInput) searchInput.value = "";
+        saveData();
+        renderKanban();
+        renderTimeline();
+        renderRoadmap();
+        refreshColumnCollapseUI();
+        exitEditMode();
+        alert("Attività importate nel progetto corrente.");
+        return;
+      }
+
+      alert(
+        "JSON non valido: atteso un progetto esportato (con proprietà 'tasks') o un array di attività."
+      );
+    } catch (err) {
+      console.error(err);
+      alert("Errore durante la lettura del file JSON.");
+    }
+  };
+
+  reader.readAsText(file);
+}
 
 // =========================
 // Menu progetto (⋮)
@@ -1038,26 +1489,24 @@ function setupProjectMenu() {
   });
 
   menu.addEventListener("click", (e) => {
-  const action = e.target.dataset.action;
-  if (!action) return;
+    const action = e.target.dataset.action;
+    if (!action) return;
 
-  if (action === "rename") {
-    renameCurrentProject();
-  } else if (action === "delete") {
-    deleteCurrentProject();
-  } else if (action === "cleanDone") {
-    archiveCompletedTasks();
-  } else if (action === "export") {
-    exportCurrentProjectAsJSON();
-  } else if (action === "import") {
-    importInput.value = "";
-    importInput.click();
-  }
+    if (action === "rename") {
+      renameCurrentProject();
+    } else if (action === "delete") {
+      deleteCurrentProject();
+    } else if (action === "cleanDone") {
+      archiveCompletedTasks();
+    } else if (action === "export") {
+      exportCurrentProjectAsJSON();
+    } else if (action === "import") {
+      importInput.value = "";
+      importInput.click();
+    }
 
-  toggleMenu(true);
-});
-
-
+    toggleMenu(true);
+  });
 
   importInput.addEventListener("change", (e) => {
     const file = e.target.files && e.target.files[0];
@@ -1089,8 +1538,11 @@ document.addEventListener("DOMContentLoaded", () => {
   setupProjectMenu();
   setupSearchBar();
   setupCompactToggle();
+  setupRoadmapControls();
   applyCompactView();
 
+  renderProjectSelect();
   renderKanban();
   renderTimeline();
+  renderRoadmap();
 });

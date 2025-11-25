@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
   <meta charset="UTF-8" />
   <title>Kanban & Timeline - Office 365 style</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
   <header class="topbar">
     <div class="topbar-left">
@@ -20,19 +22,10 @@
       <div class="project-switcher">
         <label for="projectSelect">Progetto:</label>
         <select id="projectSelect"></select>
-        <button
-          type="button"
-          id="addProjectButton"
-          class="btn btn-ghost btn-project-add"
-        >
+        <button type="button" id="addProjectButton" class="btn btn-ghost btn-project-add">
           +
         </button>
-        <button
-          type="button"
-          id="projectMenuButton"
-          class="btn btn-ghost btn-project-menu"
-          title="Opzioni progetto"
-        >
+        <button type="button" id="projectMenuButton" class="btn btn-ghost btn-project-menu" title="Opzioni progetto">
           ⋮
         </button>
       </div>
@@ -45,53 +38,61 @@
       </button>
 
       <!-- menu a tendina progetto -->
-<div id="projectMenu" class="project-menu hidden">
-  <button type="button" data-action="rename">Rinomina progetto</button>
-  <button type="button" data-action="delete">Elimina progetto</button>
-  <button type="button" data-action="cleanDone">Archivia completati</button>
-  <button type="button" data-action="export">Esporta JSON</button>
-  <button type="button" data-action="import">Importa JSON</button>
-</div>
+      <div id="projectMenu" class="project-menu hidden">
+        <button type="button" data-action="rename">Rinomina progetto</button>
+        <button type="button" data-action="delete">Elimina progetto</button>
+        <button type="button" data-action="cleanDone">Archivia completati</button>
+        <button type="button" data-action="export">Esporta JSON</button>
+        <button type="button" data-action="import">Importa JSON</button>
+      </div>
 
       <!-- input file nascosto per import -->
-      <input
-        type="file"
-        id="projectImportInput"
-        accept="application/json"
-        class="hidden"
-      />
+      <input type="file" id="projectImportInput" accept="application/json" class="hidden" />
     </div>
   </header>
 
   <main class="layout">
     <!-- Contenuto principale (a sinistra) -->
     <section class="content">
-   <div class="content-toolbar">
-  <div class="search-bar">
-    <input
-      type="search"
-      id="taskSearch"
-      placeholder="Cerca per titolo, descrizione o stato..."
-    />
-  </div>
+      <div class="content-toolbar">
+        <div class="search-bar">
+          <input type="search" id="taskSearch" placeholder="Cerca per titolo, descrizione o stato..." />
+        </div>
 
-  <label class="compact-toggle">
-    <input type="checkbox" id="compactToggle" />
-    Vista compatta
-  </label>
-</div>
-
+        <label class="compact-toggle">
+          <input type="checkbox" id="compactToggle" />
+          Vista compatta
+        </label>
+      </div>
 
       <!-- Vista Kanban -->
       <div id="kanbanView" class="view view-active">
+        <!-- ROADMAP SOPRA LA KANBAN -->
+        <div class="roadmap">
+          <div class="roadmap-header">
+            <div class="roadmap-title">Roadmap</div>
+            <div class="roadmap-controls">
+              <label class="roadmap-scale-label">
+                Scala:
+                <select id="roadmapScale">
+                  <option value="weeks">Settimane</option>
+                  <option value="months">Mesi</option>
+                  <option value="quarters">Trimestri</option> <!-- AGGIUNTO -->
+                </select>
+
+              </label>
+              <button type="button" id="addMilestoneButton" class="btn btn-ghost btn-roadmap-add">
+                + Milestone
+              </button>
+            </div>
+          </div>
+          <div id="roadmapTimeline" class="roadmap-timeline"></div>
+        </div>
+
         <div class="kanban" id="kanbanBoard">
           <div class="kanban-column" data-status="todo">
             <header class="kanban-column-header">
-              <button
-                type="button"
-                class="column-toggle"
-                aria-label="Collassa/espandi colonna"
-              >
+              <button type="button" class="column-toggle" aria-label="Collassa/espandi colonna">
                 ⯇
               </button>
               <h2>Da fare</h2>
@@ -102,11 +103,7 @@
 
           <div class="kanban-column" data-status="inprogress">
             <header class="kanban-column-header">
-              <button
-                type="button"
-                class="column-toggle"
-                aria-label="Collassa/espandi colonna"
-              >
+              <button type="button" class="column-toggle" aria-label="Collassa/espandi colonna">
                 ⯇
               </button>
               <h2>In corso</h2>
@@ -117,11 +114,7 @@
 
           <div class="kanban-column" data-status="pending">
             <header class="kanban-column-header">
-              <button
-                type="button"
-                class="column-toggle"
-                aria-label="Collassa/espandi colonna"
-              >
+              <button type="button" class="column-toggle" aria-label="Collassa/espandi colonna">
                 ⯇
               </button>
               <h2>Pending</h2>
@@ -132,11 +125,7 @@
 
           <div class="kanban-column" data-status="done">
             <header class="kanban-column-header">
-              <button
-                type="button"
-                class="column-toggle"
-                aria-label="Collassa/espandi colonna"
-              >
+              <button type="button" class="column-toggle" aria-label="Collassa/espandi colonna">
                 ⯇
               </button>
               <h2>Completato</h2>
@@ -168,21 +157,12 @@
 
         <label class="field">
           <span>Titolo</span>
-          <input
-            type="text"
-            id="taskTitle"
-            required
-            placeholder="Es. Scrivere documentazione"
-          />
+          <input type="text" id="taskTitle" required placeholder="Es. Scrivere documentazione" />
         </label>
 
         <label class="field">
           <span>Descrizione</span>
-          <textarea
-            id="taskDescription"
-            rows="3"
-            placeholder="Dettagli, note, link, ecc."
-          ></textarea>
+          <textarea id="taskDescription" rows="3" placeholder="Dettagli, note, link, ecc."></textarea>
         </label>
 
         <label class="field">
@@ -200,27 +180,15 @@
           </select>
         </label>
 
-        <button
-          type="submit"
-          id="taskSubmitButton"
-          class="btn btn-primary full-width"
-        >
+        <button type="submit" id="taskSubmitButton" class="btn btn-primary full-width">
           Aggiungi attività
         </button>
 
-        <button
-          type="button"
-          id="taskCancelEdit"
-          class="btn btn-ghost full-width small hidden"
-        >
+        <button type="button" id="taskCancelEdit" class="btn btn-ghost full-width small hidden">
           Annulla modifica
         </button>
 
-        <button
-          type="button"
-          id="resetBoard"
-          class="btn btn-ghost full-width small"
-        >
+        <button type="button" id="resetBoard" class="btn btn-ghost full-width small">
           Ripristina esempio iniziale
         </button>
       </form>
@@ -239,4 +207,5 @@
 
   <script src="app.js" defer></script>
 </body>
+
 </html>
