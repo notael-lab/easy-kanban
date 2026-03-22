@@ -1,211 +1,922 @@
 <!DOCTYPE html>
-<html lang="it">
-
+<html lang="it" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <title>Kanban & Timeline - Office 365 style</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kanban Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c0:#ffffff;--c1:#f7f7f6;--c2:#efefed;--c3:#e4e3df;--c4:#c9c8c3;--c5:#9d9c97;--c6:#6b6a66;--c7:#3a3a37;--c8:#1e1e1c;--c9:#0f0f0e;
+  --green:#2d6a4f;--green-bg:#d8f3dc;--amber:#7d4e00;--amber-bg:#fff3cd;--red:#7a1e1e;--red-bg:#fde8e8;--blue:#1a3a5c;--blue-bg:#dbeafe;
+  --bg:var(--c1);--surface:var(--c0);--surface2:var(--c1);--border:var(--c3);--border2:var(--c4);
+  --text:var(--c8);--text2:var(--c6);--text3:var(--c5);
+  --shadow:0 1px 4px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04);
+  --r:8px;--r-lg:12px;--font:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace;--tr:.15s ease;
+}
+[data-theme="dark"]{
+  --c0:#111110;--c1:#191918;--c2:#222220;--c3:#2e2e2b;--c4:#3d3d3a;--c5:#5a5a57;--c6:#8a8a86;--c7:#c4c3be;--c8:#e8e8e4;--c9:#f5f5f2;
+  --green:#74c69d;--green-bg:#1b3a27;--amber:#f4c542;--amber-bg:#3a2d00;--red:#f08080;--red-bg:#3a1010;--blue:#93bfe8;--blue-bg:#0f2340;
+  --shadow:0 1px 4px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.04);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;transition:background var(--tr),color var(--tr);}
+
+/* topbar */
+.topbar{height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;position:sticky;top:0;z-index:100;}
+.logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;letter-spacing:-.3px;color:var(--text);flex-shrink:0;}
+.logo-mark{width:28px;height:28px;background:var(--text);color:var(--surface);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;font-family:var(--mono);transition:background var(--tr),color var(--tr);}
+.topbar-flex{flex:1;}
+.icon-btn{width:32px;height:32px;border-radius:var(--r);border:none;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background var(--tr),color var(--tr);}
+.icon-btn:hover{background:var(--c2);color:var(--text);}
+.icon-btn.active-filter{background:var(--c3);color:var(--text);}
+
+/* cmdbar */
+.cmdbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:4px;height:44px;}
+.proj-wrap{display:flex;align-items:center;gap:8px;margin-right:8px;font-size:13px;color:var(--text2);}
+.proj-select{border:1px solid var(--border2);border-radius:var(--r);padding:4px 8px;font-size:13px;font-family:var(--font);background:var(--surface);color:var(--text);outline:none;cursor:pointer;max-width:180px;transition:border-color var(--tr);}
+.proj-select:focus{border-color:var(--text);}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:var(--r);font-size:13px;font-family:var(--font);font-weight:500;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--text2);transition:background var(--tr),color var(--tr),border-color var(--tr);white-space:nowrap;line-height:1;}
+.btn:hover{background:var(--c2);color:var(--text);}
+.btn-solid{background:var(--text);color:var(--surface);border-color:var(--text);}
+.btn-solid:hover{background:var(--c7);border-color:var(--c7);color:var(--surface);}
+[data-theme="dark"] .btn-solid:hover{background:var(--c9);border-color:var(--c9);}
+.btn-sm{padding:4px 10px;font-size:12px;}
+.sep{width:1px;height:20px;background:var(--border2);margin:0 6px;}
+.view-tabs{margin-left:auto;display:flex;border:1px solid var(--border2);border-radius:var(--r);overflow:hidden;}
+.view-tab{padding:5px 14px;font-size:13px;font-family:var(--font);font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:background var(--tr),color var(--tr);}
+.view-tab.active{background:var(--text);color:var(--surface);}
+
+/* dropdown */
+.menu-wrap{position:relative;}
+.dropdown{display:none;position:absolute;top:calc(100% + 6px);left:0;background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);box-shadow:0 8px 24px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.04);min-width:210px;z-index:200;overflow:hidden;}
+[data-theme="dark"] .dropdown{box-shadow:0 8px 24px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05);}
+.dropdown.open{display:block;}
+.dd-item{padding:9px 14px;font-size:13px;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:10px;transition:background var(--tr);}
+.dd-item:hover{background:var(--c2);}
+.dd-item svg{width:14px;height:14px;opacity:.55;flex-shrink:0;}
+.dd-sep{height:1px;background:var(--border);margin:4px 0;}
+.dd-item.danger{color:var(--red);}
+
+/* ── FILTER BAR ── */
+.filter-bar{background:var(--surface2);border-bottom:1px solid var(--border);padding:8px 20px;display:none;align-items:center;gap:8px;flex-wrap:wrap;}
+.filter-bar.open{display:flex;}
+.search-wrap{position:relative;flex:1;min-width:160px;max-width:280px;}
+.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text3);pointer-events:none;}
+.search-input{width:100%;border:1px solid var(--border2);border-radius:var(--r);padding:5px 10px 5px 30px;font-size:13px;font-family:var(--font);background:var(--surface);color:var(--text);outline:none;transition:border-color var(--tr);}
+.search-input:focus{border-color:var(--text);}
+.filter-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text2);font-family:var(--mono);transition:all var(--tr);}
+.filter-chip:hover{border-color:var(--text);color:var(--text);}
+.filter-chip.on{background:var(--text);color:var(--surface);border-color:var(--text);}
+.filter-results{font-size:12px;color:var(--text3);margin-left:auto;font-family:var(--mono);}
+.filter-clear{font-size:12px;color:var(--text2);cursor:pointer;padding:2px 6px;border-radius:var(--r);transition:background var(--tr);}
+.filter-clear:hover{background:var(--c2);color:var(--text);}
+
+/* main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+
+/* kanban */
+#view-kanban{display:none;flex-direction:column;flex:1;min-height:0;}
+#view-kanban.active{display:flex;}
+.kanban-sub{padding:10px 20px;display:flex;align-items:center;gap:8px;}
+.board{display:flex;gap:10px;padding:0 20px 20px;overflow-x:auto;flex:1;align-items:flex-start;min-height:0;}
+
+/* column */
+.col{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-lg);min-width:268px;max-width:268px;display:flex;flex-direction:column;max-height:calc(100vh - 210px);transition:border-color var(--tr);}
+.col-head{display:flex;align-items:center;gap:8px;padding:12px 14px 10px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border);}
+.col-pip{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.col-label{font-size:13px;font-weight:500;flex:1;}
+.col-count{font-size:11px;font-family:var(--mono);background:var(--c3);color:var(--text2);padding:1px 6px;border-radius:20px;}
+.col-chev{font-size:10px;color:var(--text3);transition:transform .2s;}
+.col.collapsed .col-chev{transform:rotate(-90deg);}
+.cards{padding:8px;display:flex;flex-direction:column;gap:5px;overflow-y:auto;flex:1;}
+.col.collapsed .cards{display:none;}
+.drop-zone{min-height:32px;border-radius:var(--r);transition:background var(--tr);}
+.drop-zone.over{background:var(--c2);outline:1.5px dashed var(--border2);}
+
+/* card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;cursor:pointer;transition:border-color var(--tr),box-shadow var(--tr);user-select:none;}
+.card:hover{border-color:var(--border2);box-shadow:var(--shadow);}
+.card.dragging{opacity:.35;}
+.card.filtered-out{display:none;}
+.card.search-match .card-title mark{background:var(--amber-bg);color:var(--amber);border-radius:2px;padding:0 2px;}
+.card-title{font-size:13px;font-weight:500;margin-bottom:3px;line-height:1.4;}
+.card-desc{font-size:12px;color:var(--text2);line-height:1.4;margin-bottom:6px;}
+.card-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:2px 7px;border-radius:20px;font-family:var(--mono);}
+.pill-date{background:var(--c2);color:var(--text2);}
+.pill-overdue{background:var(--red-bg);color:var(--red);}
+.pill-soon{background:var(--amber-bg);color:var(--amber);}
+.pill-high{background:var(--red-bg);color:var(--red);}
+.pill-medium{background:var(--amber-bg);color:var(--amber);}
+.pill-low{background:var(--green-bg);color:var(--green);}
+.add-card-btn{display:flex;align-items:center;gap:6px;width:100%;padding:7px 6px;border:none;background:transparent;color:var(--text3);font-size:12px;font-family:var(--font);cursor:pointer;border-radius:var(--r);transition:background var(--tr),color var(--tr);margin-top:2px;}
+.add-card-btn:hover{background:var(--c3);color:var(--text2);}
+.compact .card-desc{display:none;}
+.compact .card{padding:7px 11px;}
+.add-col-wrap{min-width:44px;display:flex;align-items:flex-start;}
+.add-col-btn{width:44px;height:44px;border:1.5px dashed var(--border2);border-radius:var(--r-lg);background:transparent;cursor:pointer;color:var(--text3);font-size:18px;display:flex;align-items:center;justify-content:center;transition:border-color var(--tr),color var(--tr);}
+.add-col-btn:hover{border-color:var(--text);color:var(--text);}
+
+/* timeline */
+#view-timeline{display:none;flex-direction:column;flex:1;min-height:0;}
+#view-timeline.active{display:flex;}
+.tl-sub{padding:10px 20px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);background:var(--surface);}
+.tl-scale{font-size:12px;font-family:var(--mono);border:1px solid var(--border2);border-radius:var(--r);padding:4px 8px;background:var(--surface);color:var(--text);outline:none;cursor:pointer;}
+.tl-cont{flex:1;overflow:auto;padding:20px;}
+.tl-grid{min-width:600px;}
+.tl-hdr{display:flex;margin-left:220px;margin-bottom:2px;}
+.tl-period{min-width:90px;text-align:center;font-size:11px;font-family:var(--mono);color:var(--text3);font-weight:500;border-left:1px solid var(--border);padding:4px 0;}
+.tl-row{display:flex;align-items:center;border-bottom:1px solid var(--border);min-height:38px;}
+.tl-lbl{width:220px;flex-shrink:0;padding:4px 12px;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);}
+.tl-track{flex:1;position:relative;height:38px;}
+.tl-bar{position:absolute;top:50%;transform:translateY(-50%);height:20px;border-radius:4px;display:flex;align-items:center;padding:0 7px;font-size:10px;font-family:var(--mono);color:#fff;white-space:nowrap;overflow:hidden;min-width:8px;}
+.tl-milestone{width:13px;height:13px;background:var(--text);border-radius:2px;cursor:pointer;flex-shrink:0;transition:opacity var(--tr);}
+.tl-milestone:hover{opacity:.7;}
+.tl-today{position:absolute;top:0;bottom:0;width:1px;background:var(--red);opacity:.5;pointer-events:none;}
+.tl-empty{text-align:center;padding:60px 20px;color:var(--text3);font-size:14px;line-height:1.6;}
+
+/* ── HISTORY VIEW ── */
+#view-history{display:none;flex-direction:column;flex:1;min-height:0;}
+#view-history.active{display:flex;}
+.history-sub{padding:10px 20px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);background:var(--surface);}
+.history-list{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:2px;}
+.history-entry{display:flex;align-items:baseline;gap:12px;padding:8px 10px;border-radius:var(--r);transition:background var(--tr);}
+.history-entry:hover{background:var(--c2);}
+.history-time{font-size:11px;font-family:var(--mono);color:var(--text3);flex-shrink:0;min-width:110px;}
+.history-icon{font-size:13px;flex-shrink:0;}
+.history-text{font-size:13px;color:var(--text2);flex:1;line-height:1.4;}
+.history-text strong{color:var(--text);font-weight:500;}
+.history-empty{text-align:center;padding:60px 20px;color:var(--text3);font-size:14px;}
+.history-day-sep{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;font-family:var(--mono);padding:12px 10px 4px;margin-top:4px;}
+
+/* ── COMMENTS ── */
+.comments-section{border-top:1px solid var(--border);padding-top:16px;display:flex;flex-direction:column;gap:10px;}
+.comments-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:8px;}
+.comment-list{display:flex;flex-direction:column;gap:8px;}
+.comment-item{display:flex;flex-direction:column;gap:3px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);position:relative;}
+.comment-item:hover .comment-del{opacity:1;}
+.comment-time{font-size:11px;font-family:var(--mono);color:var(--text3);}
+.comment-text{font-size:13px;color:var(--text);line-height:1.5;white-space:pre-wrap;word-break:break-word;margin-top:2px;}
+.comment-del{position:absolute;top:8px;right:8px;width:20px;height:20px;border:none;background:transparent;color:var(--text3);cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity var(--tr),background var(--tr),color var(--tr);}
+.comment-del:hover{background:var(--red-bg);color:var(--red);}
+.comment-input-wrap{display:flex;flex-direction:column;gap:6px;}
+.comment-input{border:1px solid var(--border2);border-radius:var(--r);padding:8px 11px;font-size:13px;font-family:var(--font);background:var(--surface);color:var(--text);width:100%;outline:none;resize:none;line-height:1.5;min-height:64px;transition:border-color var(--tr);}
+.comment-input:focus{border-color:var(--text);}
+.comment-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-family:var(--mono);color:var(--text3);padding:1px 5px;background:var(--c2);border-radius:10px;margin-left:4px;}
+
+/* panel */
+.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,.2);z-index:290;display:none;}
+.panel-overlay.open{display:block;}
+[data-theme="dark"] .panel-overlay{background:rgba(0,0,0,.5);}
+.panel{position:fixed;right:0;top:0;bottom:0;width:360px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;z-index:300;transform:translateX(100%);transition:transform .22s cubic-bezier(.4,0,.2,1);}
+.panel.open{transform:translateX(0);}
+.panel-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.panel-title{font-size:15px;font-weight:600;flex:1;letter-spacing:-.2px;}
+.panel-body{padding:20px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:16px;}
+.panel-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;}
+.field input,.field textarea,.field select{border:1px solid var(--border2);border-radius:var(--r);padding:8px 11px;font-size:14px;font-family:var(--font);background:var(--surface);color:var(--text);width:100%;outline:none;transition:border-color var(--tr);}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--text);}
+.field textarea{resize:vertical;min-height:72px;line-height:1.5;}
+
+/* modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:400;align-items:center;justify-content:center;}
+[data-theme="dark"] .modal-bg{background:rgba(0,0,0,.6);}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);box-shadow:0 16px 48px rgba(0,0,0,.15);padding:24px;max-width:420px;width:90%;}
+[data-theme="dark"] .modal{box-shadow:0 16px 48px rgba(0,0,0,.6);}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:10px;letter-spacing:-.3px;}
+.modal-body{font-size:14px;color:var(--text2);margin-bottom:20px;line-height:1.6;}
+.modal-body input{margin-top:8px;border:1px solid var(--border2);border-radius:var(--r);padding:8px 11px;font-size:14px;font-family:var(--font);width:100%;background:var(--surface);color:var(--text);outline:none;}
+.modal-body input:focus{border-color:var(--text);}
+.modal-body .share-url{font-family:var(--mono);font-size:11px;word-break:break-all;background:var(--c2);padding:10px;border-radius:var(--r);color:var(--text2);margin-top:10px;display:block;line-height:1.6;}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;}
+
+/* toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--c8);color:var(--surface);padding:10px 18px;border-radius:var(--r-lg);font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:500;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.tip-bar{padding:8px 20px;font-size:12px;color:var(--text3);border-top:1px solid var(--border);}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--c3);border-radius:3px;}
+[data-theme="dark"] ::-webkit-scrollbar-thumb{background:var(--c4);}
+</style>
 </head>
-
 <body>
-  <header class="topbar">
-    <div class="topbar-left">
-      <div class="app-icon">K</div>
-      <div class="app-title-group">
-        <h1 class="app-title">Kanban Planner</h1>
-        <span class="app-subtitle">Stile Office 365 • Static Web App</span>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo"><div class="logo-mark">K</div>Kanban Planner</div>
+  <div class="topbar-flex"></div>
+  <!-- Search toggle -->
+  <button class="icon-btn" id="filterToggleBtn" title="Filtri e ricerca" onclick="toggleFilterBar()">
+    <svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor"><path d="M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/></svg>
+  </button>
+  <!-- Share -->
+  <button class="icon-btn" title="Condividi via URL" onclick="shareURL()">
+    <svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor"><path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/><path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z"/></svg>
+  </button>
+  <!-- Theme -->
+  <button class="icon-btn" title="Cambia tema" onclick="toggleTheme()">
+    <svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor"><path d="M8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0 1a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/></svg>
+  </button>
+</div>
+
+<!-- CMDBAR -->
+<div class="cmdbar">
+  <div class="proj-wrap">
+    <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" style="opacity:.35"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5z"/></svg>
+    <select class="proj-select" id="projectSelect"></select>
+  </div>
+  <button class="btn btn-sm" onclick="addProject()">
+    <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
+    Nuovo
+  </button>
+  <div class="menu-wrap">
+    <button class="btn btn-sm" id="menuBtn">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><circle cx="3" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="13" cy="8" r="1.3"/></svg>
+      Opzioni
+    </button>
+    <div class="dropdown" id="mainMenu">
+      <div class="dd-item" onclick="renameProject()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207z"/></svg>Rinomina progetto</div>
+      <div class="dd-item" onclick="archiveCompleted()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/></svg>Archivia completati</div>
+      <div class="dd-sep"></div>
+      <div class="dd-item" onclick="exportJSON()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5zm7.646 1.954a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg>Esporta JSON</div>
+      <div class="dd-item" onclick="importJSON()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5zm7.646-6.854a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 4.707V11.5a.5.5 0 0 1-1 0V4.707L5.354 6.854a.5.5 0 1 1-.708-.708z"/></svg>Importa JSON</div>
+      <div class="dd-sep"></div>
+      <div class="dd-item" onclick="resetToExample()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg>Ripristina esempio</div>
+      <div class="dd-sep"></div>
+      <div class="dd-item danger" onclick="deleteProject()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3V2h11v1z"/></svg>Elimina progetto</div>
+    </div>
+  </div>
+  <div class="sep"></div>
+  <div class="view-tabs">
+    <button class="view-tab active" id="tabKanban" onclick="switchView('kanban')">Kanban</button>
+    <button class="view-tab" id="tabTimeline" onclick="switchView('timeline')">Timeline</button>
+    <button class="view-tab" id="tabHistory" onclick="switchView('history')">
+      <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" style="margin-right:4px"><path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/><path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/><path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/></svg>
+      Storico
+    </button>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar" id="filterBar">
+  <div class="search-wrap">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z"/></svg>
+    <input class="search-input" id="searchInput" placeholder="Cerca task…" oninput="applyFilters()">
+  </div>
+  <span style="font-size:12px;color:var(--text3)">Priorità:</span>
+  <span class="filter-chip" data-filter="high" onclick="toggleFilterChip(this)">Alta</span>
+  <span class="filter-chip" data-filter="medium" onclick="toggleFilterChip(this)">Media</span>
+  <span class="filter-chip" data-filter="low" onclick="toggleFilterChip(this)">Bassa</span>
+  <span class="filter-chip" data-filter="overdue" onclick="toggleFilterChip(this)">Scadute</span>
+  <span class="filter-results" id="filterResults"></span>
+  <span class="filter-clear" onclick="clearFilters()">✕ Azzera</span>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- KANBAN -->
+  <div id="view-kanban" class="active">
+    <div class="kanban-sub">
+      <button class="btn btn-sm" id="compactBtn" onclick="toggleCompact()">
+        <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M1.5 2.5A.5.5 0 0 1 2 2h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5zm0 4A.5.5 0 0 1 2 6h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5zm0 4A.5.5 0 0 1 2 10h12a.5.5 0 0 1 0 1H2a.5.5 0 0 1-.5-.5z"/></svg>
+        Compatta
+      </button>
+      <button class="btn btn-sm btn-solid" onclick="openPanel()">
+        <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
+        Nuova attività
+      </button>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="tip-bar">Doppio click su una card per modificarla · Trascina per spostare · Dati in localStorage</div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div id="view-timeline">
+    <div class="tl-sub">
+      <span style="font-size:13px;font-weight:600">Roadmap</span>
+      <div class="sep"></div>
+      <span style="font-size:12px;color:var(--text2)">Scala</span>
+      <select class="tl-scale" id="tlScale" onchange="renderTimeline()">
+        <option value="weeks">Settimane</option>
+        <option value="months" selected>Mesi</option>
+        <option value="quarters">Trimestri</option>
+      </select>
+      <button class="btn btn-sm" onclick="addMilestone()">
+        <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg>
+        Milestone
+      </button>
+    </div>
+    <div class="tl-cont" id="tlCont"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="view-history">
+    <div class="history-sub">
+      <span style="font-size:13px;font-weight:600">Storico attività</span>
+      <div class="sep"></div>
+      <span style="font-size:12px;color:var(--text3)" id="historyCount"></span>
+      <button class="btn btn-sm" style="margin-left:auto;color:var(--red)" onclick="clearHistory()">Svuota storico</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+</div>
+
+<!-- PANEL -->
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
+<div class="panel" id="panel">
+  <div class="panel-head">
+    <div class="panel-title" id="panelTitle">Nuova attività</div>
+    <button class="icon-btn" onclick="closePanel()"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg></button>
+  </div>
+  <div class="panel-body">
+    <div class="field"><label>Titolo</label><input type="text" id="fTitle" placeholder="Inserisci il titolo…"></div>
+    <div class="field"><label>Descrizione</label><textarea id="fDesc" placeholder="Note opzionali…"></textarea></div>
+    <div class="field"><label>Scadenza</label><input type="date" id="fDate"></div>
+    <div class="field"><label>Colonna</label><select id="fCol"></select></div>
+    <div class="field"><label>Priorità</label><select id="fPrio"><option value="">— Nessuna —</option><option value="low">Bassa</option><option value="medium">Media</option><option value="high">Alta</option></select></div>
+    <!-- COMMENTS — visible only when editing an existing task -->
+    <div class="comments-section" id="commentsSection" style="display:none">
+      <div class="comments-label">
+        <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M2.678 11.894a1 1 0 0 1 .287.801 10.97 10.97 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8.06 8.06 0 0 0 8 14c3.996 0 7-2.807 7-6 0-3.192-3.004-6-7-6S1 4.808 1 8c0 1.468.617 2.83 1.678 3.894zm-3.631 2.062a2.001 2.001 0 0 1-.573-1.603 1.002 1.002 0 0 1-.003-.03C.047 9.908 0 9.463 0 9c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105a.5.5 0 0 1-.577-.533 10.276 10.276 0 0 0 .276-2.31z"/></svg>
+        Commenti <span class="comment-badge" id="commentCount">0</span>
+      </div>
+      <div class="comment-list" id="commentList"></div>
+      <div class="comment-input-wrap">
+        <textarea class="comment-input" id="commentInput" placeholder="Scrivi un commento… (Ctrl+Enter per inviare)"></textarea>
+        <button class="btn btn-sm btn-solid" style="align-self:flex-end" onclick="addComment()">
+          <svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471z"/></svg>
+          Invia
+        </button>
       </div>
     </div>
+  </div>
+  <div class="panel-foot">
+    <button class="btn btn-solid" id="panelSubmit" onclick="submitPanel()">Aggiungi</button>
+    <button class="btn" onclick="closePanel()">Annulla</button>
+    <button class="btn" id="delTaskBtn" style="margin-left:auto;color:var(--red);display:none" onclick="deleteTask()">Elimina</button>
+  </div>
+</div>
 
-    <div class="topbar-right">
-      <div class="project-switcher">
-        <label for="projectSelect">Progetto:</label>
-        <select id="projectSelect"></select>
-        <button type="button" id="addProjectButton" class="btn btn-ghost btn-project-add">
-          +
-        </button>
-        <button type="button" id="projectMenuButton" class="btn btn-ghost btn-project-menu" title="Opzioni progetto">
-          ⋮
-        </button>
-      </div>
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
 
-      <button class="btn btn-light" data-view-button data-target-view="kanban">
-        Kanban
+<div class="toast" id="toast"></div>
+<input type="file" id="importInput" accept=".json" style="display:none" onchange="handleImport(event)">
+
+<script>
+// ─── DEFAULTS ────────────────────────────────────────────────────────────────
+const DCOLS=[{id:'todo',label:'Da fare',color:'#888780'},{id:'inprogress',label:'In corso',color:'#5a8ac4'},{id:'pending',label:'Pending',color:'#c4a85a'},{id:'done',label:'Completato',color:'#5aaa78'}];
+function dp(n){const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0];}
+const EX={id:'default',name:'Il mio progetto',columns:JSON.parse(JSON.stringify(DCOLS)),tasks:[
+  {id:'t1',title:'Analisi requisiti',desc:'Raccogliere i requisiti dal cliente',date:dp(5),col:'todo',priority:'high'},
+  {id:'t2',title:'Design UI',desc:'Mockup e prototipi interattivi',date:dp(14),col:'inprogress',priority:'medium'},
+  {id:'t3',title:'Setup CI/CD',desc:'Configurare la pipeline di deploy',date:dp(-2),col:'done',priority:'low'},
+  {id:'t4',title:'Sprint review',desc:'Demo con il team di prodotto',date:dp(21),col:'pending',priority:'medium'}
+],milestones:[{id:'m1',label:'MVP',date:dp(30)}]};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let S={projects:[],activeId:null};
+let editId=null, compact=false, view='kanban', dragTask=null;
+let activeFilters=new Set(), searchQ='';
+
+// ─── PERSISTENCE ─────────────────────────────────────────────────────────────
+function load(){
+  try{
+    // check for shared data in URL first
+    const hash=location.hash.slice(1);
+    if(hash){
+      try{
+        const shared=JSON.parse(decodeURIComponent(atob(hash)));
+        if(shared.projects){S=shared;}
+        else if(shared.name&&shared.tasks){S={projects:[shared],activeId:shared.id||'shared'}; S.projects[0].id=S.activeId;}
+        history.replaceState(null,'',location.pathname+location.search);
+        save();renderAll();toast('Progetto importato dal link');return;
+      }catch(e){}
+    }
+    const r=localStorage.getItem('kp4');
+    if(r)S=JSON.parse(r);
+    if(!S.projects||!S.projects.length)reset(true);
+    if(!S.activeId||!S.projects.find(p=>p.id===S.activeId))S.activeId=S.projects[0]?.id;
+  }catch{reset(true);}
+}
+function save(){localStorage.setItem('kp4',JSON.stringify(S));}
+function proj(){return S.projects.find(p=>p.id===S.activeId);}
+
+// ─── ACTIVITY LOG ────────────────────────────────────────────────────────────
+function logActivity(icon, text, projectId){
+  if(!S.log) S.log=[];
+  S.log.unshift({ts:Date.now(), icon, text, projectId:projectId||S.activeId});
+  if(S.log.length>200) S.log=S.log.slice(0,200);
+}
+
+function renderHistory(){
+  const list=document.getElementById('historyList');
+  const log=(S.log||[]).filter(e=>e.projectId===S.activeId||!e.projectId);
+  document.getElementById('historyCount').textContent=log.length+' eventi';
+  if(!log.length){list.innerHTML='<div class="history-empty">Nessuna attività registrata.<br>Le azioni sul progetto appariranno qui.</div>';return;}
+  let html='', lastDay='';
+  log.forEach(e=>{
+    const d=new Date(e.ts);
+    const day=d.toLocaleDateString('it',{weekday:'long',day:'numeric',month:'long'});
+    if(day!==lastDay){html+=`<div class="history-day-sep">${day}</div>`;lastDay=day;}
+    const time=d.toLocaleTimeString('it',{hour:'2-digit',minute:'2-digit'});
+    html+=`<div class="history-entry"><span class="history-time">${time}</span><span class="history-icon">${e.icon}</span><span class="history-text">${e.text}</span></div>`;
+  });
+  list.innerHTML=html;
+}
+
+function clearHistory(){
+  modal('Svuota storico','<p>Vuoi eliminare tutto lo storico attività del progetto corrente?</p>',[
+    {label:'Svuota',danger:true,fn:()=>{
+      S.log=(S.log||[]).filter(e=>e.projectId!==S.activeId&&e.projectId);
+      save();renderHistory();toast('Storico svuotato');
+    }},{label:'Annulla'}
+  ]);
+}
+
+// ─── SEARCH & FILTER ─────────────────────────────────────────────────────────
+function toggleFilterBar(){
+  const bar=document.getElementById('filterBar');
+  const btn=document.getElementById('filterToggleBtn');
+  const open=bar.classList.toggle('open');
+  btn.classList.toggle('active-filter',open);
+  if(open) setTimeout(()=>document.getElementById('searchInput').focus(),50);
+  else clearFilters();
+}
+
+function toggleFilterChip(el){
+  el.classList.toggle('on');
+  if(el.classList.contains('on')) activeFilters.add(el.dataset.filter);
+  else activeFilters.delete(el.dataset.filter);
+  applyFilters();
+}
+
+function clearFilters(){
+  activeFilters.clear();
+  searchQ='';
+  document.getElementById('searchInput').value='';
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('on'));
+  applyFilters();
+}
+
+function applyFilters(){
+  searchQ=document.getElementById('searchInput').value.toLowerCase().trim();
+  const p=proj(); if(!p) return;
+  const today=new Date(); today.setHours(0,0,0,0);
+  let visible=0, total=0;
+  document.querySelectorAll('.card[data-task-id]').forEach(card=>{
+    const tid=card.dataset.taskId;
+    const task=p.tasks.find(t=>t.id===tid); if(!task) return;
+    total++;
+    let show=true;
+    // search
+    if(searchQ && !task.title.toLowerCase().includes(searchQ) && !(task.desc||'').toLowerCase().includes(searchQ)) show=false;
+    // priority filters
+    if(show && activeFilters.size>0){
+      let matchesPrio=false, matchesOverdue=false;
+      const prioFilters=new Set([...activeFilters].filter(f=>f!=='overdue'));
+      const overdueFilter=activeFilters.has('overdue');
+      if(prioFilters.size>0 && prioFilters.has(task.priority)) matchesPrio=true;
+      if(overdueFilter && task.date && new Date(task.date+'T00:00:00')<today) matchesOverdue=true;
+      if(prioFilters.size>0 && overdueFilter) show=matchesPrio||matchesOverdue;
+      else if(prioFilters.size>0) show=matchesPrio;
+      else show=matchesOverdue;
+    }
+    card.classList.toggle('filtered-out',!show);
+    if(show) visible++;
+    // highlight search term in title
+    const titleEl=card.querySelector('.card-title');
+    if(titleEl){
+      if(searchQ&&show){
+        const re=new RegExp('('+searchQ.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+        titleEl.innerHTML=esc(task.title).replace(re,'<mark>$1</mark>');
+      } else {
+        titleEl.textContent=task.title;
+      }
+    }
+  });
+  const hasFilter=searchQ||activeFilters.size>0;
+  document.getElementById('filterResults').textContent=hasFilter?`${visible} / ${total} task`:'';
+}
+
+// ─── SHARE VIA URL ────────────────────────────────────────────────────────────
+function shareURL(){
+  const p=proj(); if(!p) return;
+  const payload=JSON.stringify(p);
+  const b64=btoa(encodeURIComponent(payload));
+  const url=location.origin+location.pathname+'#'+b64;
+  modal('Condividi progetto',`
+    <p>Copia questo link per condividere il progetto <strong>${esc(p.name)}</strong>.<br>Chi lo apre lo importerà automaticamente.</p>
+    <span class="share-url" id="shareUrlText">${esc(url)}</span>
+    <p style="margin-top:10px;font-size:12px;color:var(--text3)">Il link contiene tutti i dati del progetto. Non richiede server.</p>
+  `,[
+    {label:'Copia link',solid:true,fn:()=>{
+      navigator.clipboard.writeText(url).then(()=>toast('Link copiato!')).catch(()=>{
+        // fallback
+        const el=document.getElementById('shareUrlText');
+        const range=document.createRange(); range.selectNode(el);
+        window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
+        toast('Seleziona e copia manualmente');
+      });
+    }},
+    {label:'Chiudi'}
+  ]);
+}
+
+// ─── PROJECTS ─────────────────────────────────────────────────────────────────
+function addProject(){
+  modal('Nuovo progetto','<p>Nome del progetto:</p><input id="mi" value="Nuovo progetto">',[
+    {label:'Crea',solid:true,fn:()=>{
+      const name=document.getElementById('mi').value.trim()||'Nuovo progetto';
+      const p={id:'p'+Date.now(),name,columns:JSON.parse(JSON.stringify(DCOLS)),tasks:[],milestones:[]};
+      S.projects.push(p); S.activeId=p.id;
+      logActivity('📁','Progetto <strong>'+esc(name)+'</strong> creato',p.id);
+      save();renderAll();toast('Progetto creato');
+    }},{label:'Annulla'}
+  ]);
+  setTimeout(()=>document.getElementById('mi')?.focus(),80);
+}
+function renameProject(){
+  closeMenu();const p=proj();if(!p)return;
+  modal('Rinomina',`<p>Nuovo nome:</p><input id="mi" value="${esc(p.name)}">`,[
+    {label:'Salva',solid:true,fn:()=>{
+      const old=p.name; p.name=document.getElementById('mi').value.trim()||p.name;
+      logActivity('✏️','Progetto rinominato da <strong>'+esc(old)+'</strong> a <strong>'+esc(p.name)+'</strong>');
+      save();renderAll();toast('Rinominato');
+    }},{label:'Annulla'}
+  ]);
+  setTimeout(()=>document.getElementById('mi')?.select(),80);
+}
+function deleteProject(){
+  closeMenu();const p=proj();if(!p)return;
+  modal('Elimina progetto',`<p>Vuoi eliminare <strong>${esc(p.name)}</strong>? Azione irreversibile.</p>`,[
+    {label:'Elimina',danger:true,fn:()=>{
+      S.projects=S.projects.filter(x=>x.id!==p.id);
+      S.activeId=S.projects[0]?.id||null;
+      if(!S.projects.length)reset(true);
+      save();renderAll();toast('Eliminato');
+    }},{label:'Annulla'}
+  ]);
+}
+function archiveCompleted(){
+  closeMenu();const p=proj();if(!p)return;
+  const n=p.tasks.filter(t=>t.col==='done').length;
+  p.tasks=p.tasks.filter(t=>t.col!=='done');
+  logActivity('📦',`Archiviati <strong>${n} task</strong> completati`);
+  save();renderAll();toast(`Archiviati ${n} task`);
+}
+function reset(silent=false){
+  S.projects=[JSON.parse(JSON.stringify(EX))];S.activeId='default';
+  if(!S.log)S.log=[];
+  save();if(!silent){renderAll();toast('Esempio ripristinato');}closeMenu();
+}
+function exportJSON(){
+  closeMenu();const p=proj();if(!p)return;
+  const b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download=p.name.replace(/\s+/g,'-')+'.json';a.click();
+  logActivity('⬇️','Progetto esportato come JSON');
+  toast('Esportato');
+}
+function importJSON(){closeMenu();document.getElementById('importInput').click();}
+function handleImport(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=ev=>{
+    try{
+      const p=JSON.parse(ev.target.result);
+      if(!p.name||!p.tasks)throw 0;
+      p.id='p'+Date.now();
+      if(!p.columns)p.columns=JSON.parse(JSON.stringify(DCOLS));
+      if(!p.milestones)p.milestones=[];
+      S.projects.push(p);S.activeId=p.id;
+      logActivity('⬆️','Progetto <strong>'+esc(p.name)+'</strong> importato da file',p.id);
+      save();renderAll();toast('Importato: '+p.name);
+    }catch{toast('JSON non valido');}
+  };r.readAsText(f);e.target.value='';
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function renderAll(){renderSelect();renderKanban();if(view==='timeline')renderTimeline();if(view==='history')renderHistory();}
+function renderSelect(){
+  const sel=document.getElementById('projectSelect');sel.innerHTML='';
+  S.projects.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===S.activeId)o.selected=true;sel.appendChild(o);});
+  sel.onchange=()=>{S.activeId=sel.value;save();renderAll();clearFilters();};
+}
+
+// ─── KANBAN ──────────────────────────────────────────────────────────────────
+function renderKanban(){
+  const p=proj();if(!p)return;
+  const board=document.getElementById('board');board.innerHTML='';
+  const fc=document.getElementById('fCol');fc.innerHTML='';
+  p.columns.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.label;fc.appendChild(o);});
+  p.columns.forEach(col=>{
+    const tasks=p.tasks.filter(t=>t.col===col.id);
+    const el=document.createElement('div');el.className='col';el.dataset.col=col.id;
+    el.innerHTML=`<div class="col-head" onclick="colToggle(this)"><div class="col-pip" style="background:${col.color}"></div><div class="col-label">${esc(col.label)}</div><span class="col-count">${tasks.length}</span><span class="col-chev">▼</span></div><div class="cards drop-zone" data-col="${col.id}"></div>`;
+    const list=el.querySelector('.cards');
+    tasks.forEach(t=>list.appendChild(makeCard(t)));
+    const ab=document.createElement('button');ab.className='add-card-btn';
+    ab.innerHTML=`<svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/></svg> Aggiungi`;
+    ab.onclick=()=>openPanel(null,col.id);list.appendChild(ab);
+    list.addEventListener('dragover',e=>{e.preventDefault();list.classList.add('over');});
+    list.addEventListener('dragleave',()=>list.classList.remove('over'));
+    list.addEventListener('drop',e=>{
+      e.preventDefault();list.classList.remove('over');
+      if(dragTask){
+        const fromCol=p.columns.find(c=>c.id===dragTask.col);
+        const toCol=col;
+        logActivity('↔️',`<strong>${esc(dragTask.title)}</strong> spostato da <strong>${esc(fromCol?.label||dragTask.col)}</strong> a <strong>${esc(toCol.label)}</strong>`);
+        dragTask.col=col.id;save();renderAll();
+      }
+    });
+    board.appendChild(el);
+    if(compact)el.classList.add('compact');
+  });
+  const w=document.createElement('div');w.className='add-col-wrap';
+  const b=document.createElement('button');b.className='add-col-btn';b.title='Aggiungi colonna';b.textContent='+';b.onclick=addCol;
+  w.appendChild(b);board.appendChild(w);
+  // re-apply filters after re-render
+  setTimeout(applyFilters,0);
+}
+
+function makeCard(task){
+  const card=document.createElement('div');card.className='card';card.draggable=true;
+  card.dataset.taskId=task.id;
+  const dc=getDateCls(task.date);
+  const dateHtml=task.date?`<span class="pill pill-date${dc==='overdue'?' pill-overdue':dc==='soon'?' pill-soon':''}">${fmtDate(task.date)}</span>`:'';
+  const pLabels={high:'Alta',medium:'Media',low:'Bassa'};
+  const prioHtml=task.priority?`<span class="pill pill-${task.priority}">${pLabels[task.priority]}</span>`:'';
+  const cCount=(task.comments||[]).length;
+  const commHtml=cCount>0?`<span class="pill pill-date" style="margin-left:auto;gap:4px"><svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M2.678 11.894a1 1 0 0 1 .287.801 10.97 10.97 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8.06 8.06 0 0 0 8 14c3.996 0 7-2.807 7-6 0-3.192-3.004-6-7-6S1 4.808 1 8c0 1.468.617 2.83 1.678 3.894zm-3.631 2.062a2.001 2.001 0 0 1-.573-1.603 1.002 1.002 0 0 1-.003-.03C.047 9.908 0 9.463 0 9c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105a.5.5 0 0 1-.577-.533 10.276 10.276 0 0 0 .276-2.31z"/></svg>${cCount}</span>`:'';
+  card.innerHTML=`<div class="card-title">${esc(task.title)}</div>${task.desc?`<div class="card-desc">${esc(task.desc)}</div>`:''}<div class="card-footer">${dateHtml}${prioHtml}${commHtml}</div>`;
+  card.addEventListener('dblclick',()=>openPanel(task.id));
+  card.addEventListener('dragstart',()=>{dragTask=proj().tasks.find(t=>t.id===task.id);card.classList.add('dragging');});
+  card.addEventListener('dragend',()=>card.classList.remove('dragging'));
+  return card;
+}
+
+function addCol(){
+  modal('Nuova colonna','<p>Nome:</p><input id="mi" value="Nuova colonna">',[
+    {label:'Aggiungi',solid:true,fn:()=>{
+      const label=document.getElementById('mi').value.trim()||'Nuova colonna';
+      const id='col'+Date.now();const p=proj();
+      const cols=['#8764b8','#c4775a','#5aa8a8','#a85a8a'];
+      p.columns.push({id,label,color:cols[p.columns.length%cols.length]});
+      logActivity('➕','Colonna <strong>'+esc(label)+'</strong> aggiunta');
+      save();renderAll();toast('Colonna aggiunta');
+    }},{label:'Annulla'}
+  ]);
+  setTimeout(()=>document.getElementById('mi')?.select(),80);
+}
+function colToggle(h){h.closest('.col').classList.toggle('collapsed');}
+function toggleCompact(){compact=!compact;document.getElementById('compactBtn').style.fontWeight=compact?'600':'400';document.querySelectorAll('.col').forEach(c=>c.classList.toggle('compact',compact));}
+function deleteTask(){
+  if(!editId)return;const p=proj();
+  const task=p.tasks.find(t=>t.id===editId);
+  if(task)logActivity('🗑️','Task <strong>'+esc(task.title)+'</strong> eliminato');
+  p.tasks=p.tasks.filter(t=>t.id!==editId);
+  save();renderAll();closePanel();toast('Attività eliminata');
+}
+
+// ─── COMMENTS ────────────────────────────────────────────────────────────────
+function renderComments(taskId){
+  const p=proj(); if(!p) return;
+  const task=p.tasks.find(t=>t.id===taskId); if(!task) return;
+  const comments=task.comments||[];
+  document.getElementById('commentCount').textContent=comments.length;
+  const list=document.getElementById('commentList');
+  if(!comments.length){list.innerHTML='<div style="font-size:12px;color:var(--text3);padding:4px 0">Nessun commento ancora.</div>';return;}
+  list.innerHTML=comments.map(c=>`
+    <div class="comment-item">
+      <span class="comment-time">${new Date(c.ts).toLocaleString('it',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+      <div class="comment-text">${esc(c.text)}</div>
+      <button class="comment-del" onclick="deleteComment('${taskId}','${c.id}')" title="Elimina commento">
+        <svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
       </button>
-      <button class="btn btn-ghost" data-view-button data-target-view="timeline">
-        Timeline
-      </button>
-
-      <!-- menu a tendina progetto -->
-      <div id="projectMenu" class="project-menu hidden">
-        <button type="button" data-action="rename">Rinomina progetto</button>
-        <button type="button" data-action="delete">Elimina progetto</button>
-        <button type="button" data-action="cleanDone">Archivia completati</button>
-        <button type="button" data-action="export">Esporta JSON</button>
-        <button type="button" data-action="import">Importa JSON</button>
-      </div>
-
-      <!-- input file nascosto per import -->
-      <input type="file" id="projectImportInput" accept="application/json" class="hidden" />
     </div>
-  </header>
+  `).join('');
+  // scroll to bottom of list
+  list.scrollTop=list.scrollHeight;
+}
 
-  <main class="layout">
-    <!-- Contenuto principale (a sinistra) -->
-    <section class="content">
-      <div class="content-toolbar">
-        <div class="search-bar">
-          <input type="search" id="taskSearch" placeholder="Cerca per titolo, descrizione o stato..." />
-        </div>
+function addComment(){
+  if(!editId) return;
+  const input=document.getElementById('commentInput');
+  const text=input.value.trim(); if(!text) return;
+  const p=proj(); const task=p.tasks.find(t=>t.id===editId); if(!task) return;
+  if(!task.comments) task.comments=[];
+  task.comments.push({id:'c'+Date.now(), text, ts:Date.now()});
+  logActivity('💬',`Commento aggiunto a <strong>${esc(task.title)}</strong>`);
+  save(); renderComments(editId); renderKanban();
+  input.value=''; input.focus();
+}
 
-        <label class="compact-toggle">
-          <input type="checkbox" id="compactToggle" />
-          Vista compatta
-        </label>
-      </div>
+function deleteComment(taskId, commentId){
+  const p=proj(); const task=p.tasks.find(t=>t.id===taskId); if(!task) return;
+  task.comments=(task.comments||[]).filter(c=>c.id!==commentId);
+  save(); renderComments(taskId); renderKanban();
+  toast('Commento eliminato');
+}
 
-      <!-- Vista Kanban -->
-      <div id="kanbanView" class="view view-active">
-        <!-- ROADMAP SOPRA LA KANBAN -->
-        <div class="roadmap">
-          <div class="roadmap-header">
-            <div class="roadmap-title">Roadmap</div>
-            <div class="roadmap-controls">
-              <label class="roadmap-scale-label">
-                Scala:
-                <select id="roadmapScale">
-                  <option value="weeks">Settimane</option>
-                  <option value="months">Mesi</option>
-                  <option value="quarters">Trimestri</option> <!-- AGGIUNTO -->
-                </select>
+// Ctrl+Enter shortcut on comment textarea
+document.getElementById('commentInput').addEventListener('keydown', e=>{
+  if((e.ctrlKey||e.metaKey) && e.key==='Enter'){e.preventDefault();addComment();}
+});
 
-              </label>
-              <button type="button" id="addMilestoneButton" class="btn btn-ghost btn-roadmap-add">
-                + Milestone
-              </button>
-            </div>
-          </div>
-          <div id="roadmapTimeline" class="roadmap-timeline"></div>
-        </div>
 
-        <div class="kanban" id="kanbanBoard">
-          <div class="kanban-column" data-status="todo">
-            <header class="kanban-column-header">
-              <button type="button" class="column-toggle" aria-label="Collassa/espandi colonna">
-                ⯇
-              </button>
-              <h2>Da fare</h2>
-              <span class="column-count" data-count="todo">0</span>
-            </header>
-            <div class="kanban-items" data-status="todo"></div>
-          </div>
+function openPanel(taskId=null,defaultCol=null){
+  editId=taskId;const p=proj();
+  const commentsSection=document.getElementById('commentsSection');
+  if(taskId){
+    const t=p.tasks.find(x=>x.id===taskId);
+    document.getElementById('panelTitle').textContent='Modifica attività';
+    document.getElementById('fTitle').value=t.title;
+    document.getElementById('fDesc').value=t.desc||'';
+    document.getElementById('fDate').value=t.date||'';
+    document.getElementById('fCol').value=t.col;
+    document.getElementById('fPrio').value=t.priority||'';
+    document.getElementById('panelSubmit').textContent='Salva';
+    document.getElementById('delTaskBtn').style.display='';
+    commentsSection.style.display='';
+    document.getElementById('commentInput').value='';
+    renderComments(taskId);
+  }else{
+    document.getElementById('panelTitle').textContent='Nuova attività';
+    document.getElementById('fTitle').value='';document.getElementById('fDesc').value='';
+    document.getElementById('fDate').value='';
+    document.getElementById('fCol').value=defaultCol||p.columns[0]?.id||'';
+    document.getElementById('fPrio').value='';
+    document.getElementById('panelSubmit').textContent='Aggiungi';
+    document.getElementById('delTaskBtn').style.display='none';
+    commentsSection.style.display='none';
+  }
+  document.getElementById('panelOverlay').classList.add('open');
+  document.getElementById('panel').classList.add('open');
+  setTimeout(()=>document.getElementById('fTitle').focus(),50);
+}
+function closePanel(){document.getElementById('panel').classList.remove('open');document.getElementById('panelOverlay').classList.remove('open');editId=null;}
+function submitPanel(){
+  const title=document.getElementById('fTitle').value.trim();
+  if(!title){document.getElementById('fTitle').focus();return;}
+  const p=proj();
+  const newCol=document.getElementById('fCol').value;
+  const task={
+    id:editId||'t'+Date.now(),title,
+    desc:document.getElementById('fDesc').value.trim(),
+    date:document.getElementById('fDate').value,
+    col:newCol,priority:document.getElementById('fPrio').value
+  };
+  if(editId){
+    const prev=p.tasks.find(t=>t.id===editId);
+    const prevCol=p.columns.find(c=>c.id===prev?.col);
+    const toCol=p.columns.find(c=>c.id===newCol);
+    if(prev&&prev.col!==newCol)
+      logActivity('↔️',`<strong>${esc(title)}</strong> spostato in <strong>${esc(toCol?.label||newCol)}</strong>`);
+    else
+      logActivity('✏️',`Task <strong>${esc(title)}</strong> modificato`);
+    const i=p.tasks.findIndex(t=>t.id===editId);p.tasks[i]=task;toast('Salvato');
+  }else{
+    const col=p.columns.find(c=>c.id===newCol);
+    logActivity('➕',`Task <strong>${esc(title)}</strong> aggiunto in <strong>${esc(col?.label||newCol)}</strong>`);
+    p.tasks.push(task);toast('Aggiunto');
+  }
+  save();renderAll();closePanel();
+}
 
-          <div class="kanban-column" data-status="inprogress">
-            <header class="kanban-column-header">
-              <button type="button" class="column-toggle" aria-label="Collassa/espandi colonna">
-                ⯇
-              </button>
-              <h2>In corso</h2>
-              <span class="column-count" data-count="inprogress">0</span>
-            </header>
-            <div class="kanban-items" data-status="inprogress"></div>
-          </div>
+// ─── TIMELINE ─────────────────────────────────────────────────────────────────
+function renderTimeline(){
+  const p=proj();if(!p)return;
+  const cont=document.getElementById('tlCont');
+  const scale=document.getElementById('tlScale').value;
+  const tasks=p.tasks.filter(t=>t.date).sort((a,b)=>a.date.localeCompare(b.date));
+  const ms=(p.milestones||[]).filter(m=>m.date);
+  const all=[...tasks.map(t=>t.date),...ms.map(m=>m.date)];
+  if(!all.length){cont.innerHTML='<div class="tl-empty">Nessuna attività con date.<br>Aggiungile per visualizzare la roadmap.</div>';return;}
+  const minD=new Date(all.reduce((a,b)=>a<b?a:b));
+  const maxD=new Date(all.reduce((a,b)=>a>b?a:b));
+  minD.setDate(1);
+  let periods=[];
+  if(scale==='weeks'){const d=new Date(minD);while(d<=maxD){periods.push(new Date(d));d.setDate(d.getDate()+7);}periods.push(new Date(d));}
+  else if(scale==='months'){const d=new Date(minD.getFullYear(),minD.getMonth(),1);while(d<=maxD){periods.push(new Date(d));d.setMonth(d.getMonth()+1);}periods.push(new Date(d));}
+  else{const d=new Date(minD.getFullYear(),Math.floor(minD.getMonth()/3)*3,1);while(d<=maxD){periods.push(new Date(d));d.setMonth(d.getMonth()+3);}periods.push(new Date(d));}
+  const totalMs=periods[periods.length-1]-periods[0];
+  const UW=90,totalW=UW*(periods.length-1);
+  const pLabel=d=>{if(scale==='weeks')return`${d.getDate()}/${d.getMonth()+1}`;if(scale==='months')return d.toLocaleString('it',{month:'short',year:'2-digit'});return`Q${Math.floor(d.getMonth()/3)+1} ${d.getFullYear()}`;};
+  const posOf=ds=>{const d=new Date(ds+'T00:00:00');return Math.max(0,Math.min(totalW,((d-periods[0])/totalMs)*totalW));};
+  const colColor=cid=>{const p2=proj();return p2.columns.find(c=>c.id===cid)?.color||'var(--c5)';};
+  const todayX=posOf(new Date().toISOString().split('T')[0]);
+  let html=`<div class="tl-grid" style="min-width:${220+totalW+40}px"><div class="tl-hdr">`;
+  for(let i=0;i<periods.length-1;i++)html+=`<div class="tl-period">${pLabel(periods[i])}</div>`;
+  html+=`</div>`;
+  tasks.forEach(t=>{
+    const x=posOf(t.date);
+    html+=`<div class="tl-row"><div class="tl-lbl" title="${esc(t.title)}">${esc(t.title)}</div><div class="tl-track" style="min-width:${totalW}px">${todayX>=0&&todayX<=totalW?`<div class="tl-today" style="left:${todayX}px"></div>`:''}<div style="position:absolute;left:${Math.max(0,x-4)}px;top:50%;transform:translateY(-50%);width:8px;height:20px;border-radius:3px;background:${colColor(t.col)}" title="${esc(t.title)} — ${t.date}"></div></div></div>`;
+  });
+  if(ms.length){
+    html+=`<div class="tl-row"><div class="tl-lbl" style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Milestones</div><div class="tl-track" style="min-width:${totalW}px">${todayX>=0&&todayX<=totalW?`<div class="tl-today" style="left:${todayX}px"></div>`:''}${ms.map(m=>`<div style="position:absolute;left:${posOf(m.date)}px;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer" onclick="editMilestone('${m.id}')" title="Clicca per modificare: ${esc(m.label)}"><div class="tl-milestone" style="transform:rotate(45deg)"></div><span style="font-size:10px;font-family:var(--mono);color:var(--text2);white-space:nowrap;margin-top:6px">${esc(m.label)}</span></div>`).join('')}</div></div>`;
+  }
+  html+=`</div>`;cont.innerHTML=html;
+}
 
-          <div class="kanban-column" data-status="pending">
-            <header class="kanban-column-header">
-              <button type="button" class="column-toggle" aria-label="Collassa/espandi colonna">
-                ⯇
-              </button>
-              <h2>Pending</h2>
-              <span class="column-count" data-count="pending">0</span>
-            </header>
-            <div class="kanban-items" data-status="pending"></div>
-          </div>
+function milestoneForm(title,labelVal,dateVal,btns){
+  modal(title,`<div style="display:flex;flex-direction:column;gap:12px">
+    <div><label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px">Nome</label><br><input id="mLabel" value="${esc(labelVal)}" style="margin-top:5px"></div>
+    <div><label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px">Data</label><br><input id="mDate" type="date" value="${dateVal}" style="margin-top:5px"></div>
+  </div>`,btns);
+}
+function addMilestone(){
+  milestoneForm('Nuova Milestone','Milestone','',[
+    {label:'Aggiungi',solid:true,fn:()=>{
+      const label=document.getElementById('mLabel').value.trim()||'Milestone';
+      const date=document.getElementById('mDate').value;
+      if(!date){toast('Seleziona una data');return;}
+      const p=proj();if(!p.milestones)p.milestones=[];
+      p.milestones.push({id:'m'+Date.now(),label,date});
+      logActivity('◆','Milestone <strong>'+esc(label)+'</strong> aggiunta ('+date+')');
+      save();renderTimeline();toast('Milestone aggiunta');
+    }},{label:'Annulla'}
+  ]);
+}
+function editMilestone(id){
+  const p=proj();if(!p)return;
+  const m=p.milestones.find(x=>x.id===id);if(!m)return;
+  milestoneForm('Modifica Milestone',m.label,m.date,[
+    {label:'Salva',solid:true,fn:()=>{
+      const label=document.getElementById('mLabel').value.trim()||m.label;
+      const date=document.getElementById('mDate').value;
+      if(!date){toast('Seleziona una data');return;}
+      logActivity('✏️','Milestone <strong>'+esc(m.label)+'</strong> modificata');
+      m.label=label;m.date=date;save();renderTimeline();toast('Milestone aggiornata');
+    }},
+    {label:'Elimina',danger:true,fn:()=>{
+      logActivity('🗑️','Milestone <strong>'+esc(m.label)+'</strong> eliminata');
+      p.milestones=p.milestones.filter(x=>x.id!==id);save();renderTimeline();toast('Milestone eliminata');
+    }},
+    {label:'Annulla'}
+  ]);
+}
 
-          <div class="kanban-column" data-status="done">
-            <header class="kanban-column-header">
-              <button type="button" class="column-toggle" aria-label="Collassa/espandi colonna">
-                ⯇
-              </button>
-              <h2>Completato</h2>
-              <span class="column-count" data-count="done">0</span>
-            </header>
-            <div class="kanban-items" data-status="done"></div>
-          </div>
-        </div>
-      </div>
+// ─── VIEW SWITCH ──────────────────────────────────────────────────────────────
+function switchView(v){
+  view=v;
+  ['kanban','timeline','history'].forEach(x=>{
+    const ve=document.getElementById('view-'+x);if(ve)ve.classList.toggle('active',x===v);
+    const te=document.getElementById('tab'+x.charAt(0).toUpperCase()+x.slice(1));if(te)te.classList.toggle('active',x===v);
+  });
+  if(v==='timeline')renderTimeline();
+  if(v==='history')renderHistory();
+}
 
-      <!-- Vista Timeline -->
-      <div id="timelineView" class="view">
-        <div class="timeline-header">
-          <h2>Timeline attività</h2>
-          <p class="timeline-desc">
-            Mostra solo le attività con data di scadenza valida, ordinate
-            cronologicamente.
-          </p>
-        </div>
-        <div id="timelineContainer" class="timeline"></div>
-      </div>
-    </section>
+// ─── MODAL ───────────────────────────────────────────────────────────────────
+function modal(title,body,btns){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').innerHTML=body;
+  const f=document.getElementById('modalFoot');f.innerHTML='';
+  btns.forEach(b=>{
+    const btn=document.createElement('button');btn.textContent=b.label;
+    btn.className=b.solid?'btn btn-solid':'btn';
+    if(b.danger)btn.style.color='var(--red)';
+    btn.onclick=()=>{closeModal();if(b.fn)b.fn();};f.appendChild(btn);
+  });
+  document.getElementById('modalBg').classList.add('open');
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('open');}
+document.getElementById('modalBg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
 
-    <!-- Sidebar: crea/modifica attività (a destra) -->
-    <aside class="sidebar">
-      <h2 id="formTitle">Nuova attività</h2>
-      <form id="taskForm" autocomplete="off">
-        <input type="hidden" id="taskId" />
+// ─── THEME ───────────────────────────────────────────────────────────────────
+function toggleTheme(){const h=document.documentElement;const n=h.dataset.theme==='dark'?'light':'dark';h.dataset.theme=n;localStorage.setItem('kp4-theme',n);}
+function loadTheme(){const t=localStorage.getItem('kp4-theme');if(t)document.documentElement.dataset.theme=t;}
 
-        <label class="field">
-          <span>Titolo</span>
-          <input type="text" id="taskTitle" required placeholder="Es. Scrivere documentazione" />
-        </label>
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+let tt;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2400);}
 
-        <label class="field">
-          <span>Descrizione</span>
-          <textarea id="taskDescription" rows="3" placeholder="Dettagli, note, link, ecc."></textarea>
-        </label>
+// ─── MENU ────────────────────────────────────────────────────────────────────
+document.getElementById('menuBtn').addEventListener('click',e=>{e.stopPropagation();document.getElementById('mainMenu').classList.toggle('open');});
+document.addEventListener('click',()=>document.getElementById('mainMenu').classList.remove('open'));
+function closeMenu(){document.getElementById('mainMenu').classList.remove('open');}
 
-        <label class="field">
-          <span>Scadenza</span>
-          <input type="date" id="taskDueDate" />
-        </label>
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtDate(d){if(!d)return'';return new Date(d+'T00:00:00').toLocaleDateString('it',{day:'numeric',month:'short'});}
+function getDateCls(d){if(!d)return'';const today=new Date();today.setHours(0,0,0,0);const date=new Date(d+'T00:00:00');const diff=(date-today)/86400000;if(diff<0)return'overdue';if(diff<=3)return'soon';return'';}
 
-        <label class="field">
-          <span>Colonna</span>
-          <select id="taskStatus">
-            <option value="todo">Da fare</option>
-            <option value="inprogress">In corso</option>
-            <option value="pending">Pending</option>
-            <option value="done">Completato</option>
-          </select>
-        </label>
-
-        <button type="submit" id="taskSubmitButton" class="btn btn-primary full-width">
-          Aggiungi attività
-        </button>
-
-        <button type="button" id="taskCancelEdit" class="btn btn-ghost full-width small hidden">
-          Annulla modifica
-        </button>
-
-        <button type="button" id="resetBoard" class="btn btn-ghost full-width small">
-          Ripristina esempio iniziale
-        </button>
-      </form>
-
-      <p class="hint">
-        Suggerimento: fai <strong>doppio click</strong> su una card nella Kanban
-        per modificarla. I dati vengono salvati in
-        <strong>localStorage</strong>.
-      </p>
-    </aside>
-  </main>
-
-  <footer class="footer">
-    <span>Kanban &amp; Timeline • Static app compatibile con GitHub Pages • UI ispirata a Microsoft 365</span>
-  </footer>
-
-  <script src="app.js" defer></script>
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+loadTheme();load();renderAll();
+</script>
 </body>
-
 </html>
