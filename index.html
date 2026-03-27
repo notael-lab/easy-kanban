@@ -649,6 +649,24 @@ let editId=null, compact=false, view='kanban', dragTask=null;
 let activeFilters=new Set(), searchQ='';
 
 // ─── PERSISTENCE ─────────────────────────────────────────────────────────────
+// Migrate data from older versions if kp4 is empty
+function migrateFromOlderVersions(){
+  if(localStorage.getItem('kp4')) return; // already on current version
+  const oldKeys=['kp3','kp2','kp'];
+  for(const key of oldKeys){
+    const raw=localStorage.getItem(key);
+    if(raw){
+      try{
+        const data=JSON.parse(raw);
+        if(data.projects&&data.projects.length){
+          localStorage.setItem('kp4',raw);
+          console.log(`[migration] Dati migrati da "${key}" a "kp4"`);
+          return;
+        }
+      }catch(e){}
+    }
+  }
+}
 function load(){
   try{
     // check for shared data in URL first
@@ -2212,6 +2230,7 @@ window.save = _rawSave; // default to plaintext; overridden after unlock if cryp
 
 // Boot sequence
 (async function boot(){
+  migrateFromOlderVersions();
   if(isCryptoSetup()){
     // encrypted mode — show lock screen, load happens after unlock
     try { _rawLoad(); } catch(e){} // try load plaintext just in case (migration)
