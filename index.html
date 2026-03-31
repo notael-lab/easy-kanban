@@ -394,6 +394,32 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .tip-bar{padding:8px 20px;font-size:12px;color:var(--text3);border-top:1px solid var(--border);}
 
+/* ── MY TASKS VIEW ── */
+#view-mytasks{display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;}
+#view-mytasks.active{display:flex;}
+.mytasks-wrap{padding:20px;display:flex;flex-direction:column;gap:16px;max-width:760px;margin:0 auto;width:100%;}
+.mytasks-header{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.mytasks-count{font-size:13px;font-family:var(--mono);color:var(--text3);}
+.mytasks-group{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
+.mytasks-group-head{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--surface2);}
+.mytasks-group-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;font-family:var(--mono);flex:1;}
+.mytasks-group-count{font-size:11px;font-family:var(--mono);color:var(--text3);background:var(--c3);padding:1px 7px;border-radius:20px;}
+.mytasks-item{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:.5px solid var(--border);cursor:pointer;transition:background var(--tr);}
+.mytasks-item:last-child{border-bottom:none;}
+.mytasks-item:hover{background:var(--c2);}
+.mytasks-item-pip{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.mytasks-item-title{font-size:13px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mytasks-item-proj{font-size:11px;color:var(--text3);font-family:var(--mono);flex-shrink:0;}
+.mytasks-item-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.mytasks-empty{text-align:center;padding:48px 20px;color:var(--text3);font-size:14px;line-height:1.6;}
+
+/* toggle "assegnata a me" */
+.assigned-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border);margin-top:4px;}
+.assigned-toggle-label{font-size:13px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:7px;}
+
+/* badge "mia" sulla card */
+.pill-mine{background:var(--blue-bg);color:var(--blue);}
+
 /* ── QUICK LAUNCHER ── */
 .ql-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:600;display:none;align-items:flex-start;justify-content:center;padding-top:80px;}
 [data-theme="dark"] .ql-overlay{background:rgba(0,0,0,.6);}
@@ -562,6 +588,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <button class="view-tab" id="tabTimeline" onclick="switchView('timeline')">Timeline</button>
     <button class="view-tab" id="tabCalendar" onclick="switchView('calendar')">Calendario</button>
     <button class="view-tab" id="tabStats" onclick="switchView('stats')">Statistiche</button>
+    <button class="view-tab" id="tabMytasks" onclick="switchView('mytasks')">Le mie task</button>
     <button class="view-tab" id="tabReview" onclick="switchView('review')">Review</button>
     <button class="view-tab" id="tabHistory" onclick="switchView('history')">
       <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" style="margin-right:4px"><path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/><path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/><path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/></svg>
@@ -624,6 +651,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </button>
     </div>
     <div class="tl-cont" id="tlCont"></div>
+  </div>
+
+  <!-- MY TASKS -->
+  <div id="view-mytasks">
+    <div class="mytasks-wrap" id="mytasksWrap"></div>
   </div>
 
   <!-- CALENDAR -->
@@ -722,11 +754,51 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="field">
       <label>Data inizio</label>
       <input type="date" id="fStart">
-      <span id="fStartHint" style="font-size:11px;color:var(--text3);margin-top:2px">Impostata automaticamente al passaggio in "In corso"</span>
+      <span style="font-size:11px;color:var(--text3);margin-top:2px">Impostata automaticamente al passaggio in "In corso"</span>
     </div>
-    <div class="field"><label>Scadenza</label><input type="date" id="fDate"></div>
+    <div class="field">
+      <label>Durata (giorni)</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="number" id="fDuration" min="1" max="365" placeholder="es. 7"
+          style="width:80px;flex-shrink:0" oninput="recalcDeadline()">
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          <button type="button" class="btn btn-sm" style="font-size:11px;padding:3px 9px" onclick="setDuration(1)">1g</button>
+          <button type="button" class="btn btn-sm" style="font-size:11px;padding:3px 9px" onclick="setDuration(7)">1 sett</button>
+          <button type="button" class="btn btn-sm" style="font-size:11px;padding:3px 9px" onclick="setDuration(14)">2 sett</button>
+          <button type="button" class="btn btn-sm" style="font-size:11px;padding:3px 9px" onclick="setDuration(30)">1 mese</button>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Scadenza (calcolata)</label>
+      <input type="date" id="fDate" readonly
+        style="background:var(--c2);color:var(--text2);cursor:default"
+        title="Calcolata automaticamente da data inizio + durata">
+      <span id="fDeadlineHint" style="font-size:11px;color:var(--text3);margin-top:2px"></span>
+    </div>
     <div class="field"><label>Colonna</label><select id="fCol"></select></div>
     <div class="field"><label>Priorità</label><select id="fPrio"><option value="">— Nessuna —</option><option value="low">Bassa</option><option value="medium">Media</option><option value="high">Alta</option></select></div>
+    <div class="assigned-toggle">
+      <span class="assigned-toggle-label">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z"/></svg>
+        Assegnata a me
+      </span>
+      <label class="toggle-wrap">
+        <input type="checkbox" id="fAssigned">
+        <div class="toggle-track"></div><div class="toggle-thumb"></div>
+      </label>
+    </div>
+    <!-- Sposta in altro progetto — visibile solo in modifica -->
+    <div class="field" id="moveProjectField" style="display:none">
+      <label>Sposta in progetto</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="fMoveProject" style="flex:1"></select>
+        <button type="button" class="btn btn-sm" onclick="moveTaskToProject()" style="white-space:nowrap;flex-shrink:0">
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" transform="scale(-1,1) translate(-16,0)"/></svg>
+          Sposta
+        </button>
+      </div>
+    </div>
     <!-- COMMENTS — visible only when editing an existing task -->
     <div class="comments-section" id="commentsSection" style="display:none">
       <div class="comments-label">
@@ -1158,10 +1230,11 @@ function handleImport(e){
 }
 
 // ─── RENDER ──────────────────────────────────────────────────────────────────
-function renderAll(){renderSelect();renderKanban();if(view==='timeline')renderTimeline();if(view==='calendar')renderCalendar();if(view==='stats')renderStats();if(view==='review')renderReview();if(view==='history')renderHistory();}
+function renderAll(){renderSelect();renderKanban();if(view==='timeline')renderTimeline();if(view==='calendar')renderCalendar();if(view==='stats')renderStats();if(view==='mytasks')renderMyTasks();if(view==='review')renderReview();if(view==='history')renderHistory();}
 function renderSelect(){
   const sel=document.getElementById('projectSelect');sel.innerHTML='';
-  S.projects.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===S.activeId)o.selected=true;sel.appendChild(o);});
+  const sorted=[...S.projects].sort((a,b)=>a.name.localeCompare(b.name,'it'));
+  sorted.forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===S.activeId)o.selected=true;sel.appendChild(o);});
   sel.onchange=()=>{S.activeId=sel.value;tlOverlayProjects.clear();save();renderAll();clearFilters();};
 }
 
@@ -1228,7 +1301,8 @@ function makeCard(task){
   const commHtml=cCount>0?`<span class="pill pill-date" style="margin-left:auto;gap:4px"><svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M2.678 11.894a1 1 0 0 1 .287.801 10.97 10.97 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8.06 8.06 0 0 0 8 14c3.996 0 7-2.807 7-6 0-3.192-3.004-6-7-6S1 4.808 1 8c0 1.468.617 2.83 1.678 3.894zm-3.631 2.062a2.001 2.001 0 0 1-.573-1.603 1.002 1.002 0 0 1-.003-.03C.047 9.908 0 9.463 0 9c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105a.5.5 0 0 1-.577-.533 10.276 10.276 0 0 0 .276-2.31z"/></svg>${cCount}</span>`:'';
   const pomoCount=task.pomodoroCount||0;
   const pomoHtml=pomoCount>0?`<span class="pill pill-date" style="gap:3px">🍅 ${pomoCount}</span>`:'';
-  card.innerHTML=`<div class="card-title">${esc(task.title)}</div>${task.desc?`<div class="card-desc">${esc(task.desc)}</div>`:''}<div class="card-footer">${startHtml}${dateHtml}${prioHtml}${commHtml}${pomoHtml}</div>`;
+  const assignedHtml=task.assigned?`<span class="pill pill-mine">👤</span>`:'';
+  card.innerHTML=`<div class="card-title">${esc(task.title)}</div>${task.desc?`<div class="card-desc">${esc(task.desc)}</div>`:''}<div class="card-footer">${startHtml}${dateHtml}${prioHtml}${assignedHtml}${commHtml}${pomoHtml}</div>`;
   card.addEventListener('dblclick',()=>openPanel(task.id));
   // right-click to start pomodoro
   card.addEventListener('contextmenu',e=>{e.preventDefault();openPomodoro(task.id);});
@@ -1459,11 +1533,32 @@ function openPanel(taskId=null,defaultCol=null){
     document.getElementById('fTitle').value=t.title;
     document.getElementById('fDesc').value=t.desc||'';
     document.getElementById('fStart').value=t.startDate||'';
+    // compute duration from startDate → date
+    let dur='';
+    if(t.startDate&&t.date){
+      const diff=Math.round((new Date(t.date+'T00:00:00')-new Date(t.startDate+'T00:00:00'))/(1000*60*60*24));
+      if(diff>0) dur=diff;
+    }
+    document.getElementById('fDuration').value=dur;
     document.getElementById('fDate').value=t.date||'';
+    // update hint
+    const hint=document.getElementById('fDeadlineHint');
+    hint.textContent=t.startDate&&t.date?fmtDate(t.startDate)+' + '+(dur||'?')+'g = '+fmtDate(t.date):'';
     document.getElementById('fCol').value=t.col;
     document.getElementById('fPrio').value=t.priority||'';
+    document.getElementById('fAssigned').checked=!!t.assigned;
     document.getElementById('panelSubmit').textContent='Salva';
     document.getElementById('delTaskBtn').style.display='';
+    // move to project field
+    const moveField=document.getElementById('moveProjectField');
+    const moveSelect=document.getElementById('fMoveProject');
+    const otherProjects=S.projects.filter(pr=>pr.id!==S.activeId).sort((a,b)=>a.name.localeCompare(b.name,'it'));
+    if(otherProjects.length){
+      moveSelect.innerHTML=otherProjects.map(pr=>`<option value="${pr.id}">${esc(pr.name)}</option>`).join('');
+      moveField.style.display='';
+    } else {
+      moveField.style.display='none';
+    }
     commentsSection.style.display='';
     document.getElementById('commentInput').value='';
     renderComments(taskId);
@@ -1471,18 +1566,73 @@ function openPanel(taskId=null,defaultCol=null){
     document.getElementById('panelTitle').textContent='Nuova attività';
     document.getElementById('fTitle').value='';document.getElementById('fDesc').value='';
     document.getElementById('fStart').value='';
+    document.getElementById('fDuration').value='';
     document.getElementById('fDate').value='';
+    document.getElementById('fDeadlineHint').textContent='';
     document.getElementById('fCol').value=defaultCol||p.columns[0]?.id||'';
     document.getElementById('fPrio').value='';
     applyDefaultPriority();
+    document.getElementById('fAssigned').checked=false;
     document.getElementById('panelSubmit').textContent='Aggiungi';
     document.getElementById('delTaskBtn').style.display='none';
+    document.getElementById('moveProjectField').style.display='none';
     commentsSection.style.display='none';
   }
   document.getElementById('panelOverlay').classList.add('open');
   document.getElementById('panel').classList.add('open');
   setTimeout(()=>document.getElementById('fTitle').focus(),50);
 }
+function setDuration(days){
+  document.getElementById('fDuration').value = days;
+  recalcDeadline();
+}
+
+function recalcDeadline(){
+  const startVal = document.getElementById('fStart').value;
+  const dur = parseInt(document.getElementById('fDuration').value) || 0;
+  const hint = document.getElementById('fDeadlineHint');
+  if(startVal && dur > 0){
+    const d = new Date(startVal + 'T00:00:00');
+    d.setDate(d.getDate() + dur);
+    document.getElementById('fDate').value = d.toISOString().split('T')[0];
+    hint.textContent = fmtDate(startVal) + ' + ' + dur + 'g = ' + fmtDate(d.toISOString().split('T')[0]);
+  } else {
+    document.getElementById('fDate').value = '';
+    hint.textContent = startVal && !dur ? 'Inserisci la durata in giorni' : '';
+  }
+}
+
+document.getElementById('fStart').addEventListener('change', recalcDeadline);
+
+function moveTaskToProject(){
+  if(!editId) return;
+  const targetId=document.getElementById('fMoveProject').value;
+  const target=S.projects.find(pr=>pr.id===targetId);
+  const src=proj();
+  if(!target||!src) return;
+
+  const task=src.tasks.find(t=>t.id===editId);
+  if(!task) return;
+
+  // find best matching column in target (same id, else first column)
+  const targetCol=target.columns.find(c=>c.id===task.col)||target.columns[0];
+
+  modal(`Sposta in "${esc(target.name)}"`,
+    `<p>La task <strong>${esc(task.title)}</strong> verrà spostata nel progetto <strong>${esc(target.name)}</strong>, nella colonna <strong>${esc(targetCol?.label||'—')}</strong>.<br><br>Commenti e pomodori verranno conservati.</p>`,
+    [{label:'Sposta',solid:true,fn:()=>{
+      // clone task into target
+      const moved={...task, id:'t'+Date.now(), col:targetCol?.id||target.columns[0]?.id};
+      if(!target.tasks) target.tasks=[];
+      target.tasks.push(moved);
+      // remove from source
+      src.tasks=src.tasks.filter(t=>t.id!==editId);
+      logActivity('↗️',`Task <strong>${esc(task.title)}</strong> spostata nel progetto <strong>${esc(target.name)}</strong>`);
+      save(); renderAll(); closePanel();
+      toast(`Spostata in "${target.name}"`);
+    }},{label:'Annulla'}]
+  );
+}
+
 function closePanel(){
   document.getElementById('panel').classList.remove('open');
   document.getElementById('panelOverlay').classList.remove('open');
@@ -1513,6 +1663,7 @@ function submitPanel(){
     startDate, endDate,
     date:document.getElementById('fDate').value,
     col:newCol, priority:document.getElementById('fPrio').value,
+    assigned:document.getElementById('fAssigned').checked,
     comments: prev?.comments||[]
   };
   if(editId){
@@ -2140,16 +2291,117 @@ function renderReview(){
   `;
 }
 
+// ─── MY TASKS ────────────────────────────────────────────────────────────────
+function renderMyTasks(){
+  const wrap=document.getElementById('mytasksWrap');
+  const today=new Date(); today.setHours(0,0,0,0);
+
+  // Collect all assigned tasks across all projects
+  const all=[];
+  S.projects.forEach(pr=>{
+    (pr.tasks||[]).forEach(t=>{
+      if(t.assigned) all.push({task:t, proj:pr});
+    });
+  });
+
+  const total=all.length;
+
+  // Sort: overdue first, then by date asc (no date last), then priority (high>medium>low>none)
+  const prioOrder={high:0,medium:1,low:2,'':3,undefined:3};
+  const dateOf=t=>t.date?new Date(t.date+'T00:00:00'):null;
+
+  all.sort((a,b)=>{
+    const da=dateOf(a.task), db=dateOf(b.task);
+    const aOver=da&&da<today, bOver=db&&db<today;
+    if(aOver!==bOver) return aOver?-1:1;
+    if(da&&db) return da-db;
+    if(da) return -1; if(db) return 1;
+    return (prioOrder[a.task.priority]||3)-(prioOrder[b.task.priority]||3);
+  });
+
+  if(!total){
+    wrap.innerHTML=`
+      <div class="mytasks-header">
+        <div style="font-size:20px;font-weight:600;letter-spacing:-.4px">Le mie task</div>
+      </div>
+      <div class="mytasks-empty">
+        <div style="font-size:32px;margin-bottom:12px">👤</div>
+        Nessuna task assegnata a te.<br>
+        <span style="font-size:13px">Apri una task e attiva il toggle "Assegnata a me".</span>
+      </div>`;
+    return;
+  }
+
+  // Group: scadute / oggi / questa settimana / più avanti / senza data
+  const weekEnd=new Date(today); weekEnd.setDate(today.getDate()+7);
+  const groups=[
+    {key:'overdue', label:'Scadute', color:'var(--red)', items:[]},
+    {key:'today',   label:'Oggi',    color:'var(--amber)', items:[]},
+    {key:'week',    label:'Questa settimana', color:'var(--blue)', items:[]},
+    {key:'later',   label:'Più avanti', color:'var(--text3)', items:[]},
+    {key:'nodate',  label:'Senza data',  color:'var(--text3)', items:[]}
+  ];
+
+  all.forEach(h=>{
+    const d=dateOf(h.task);
+    if(!d){ groups[4].items.push(h); return; }
+    if(d<today){ groups[0].items.push(h); return; }
+    if(d.toDateString()===today.toDateString()){ groups[1].items.push(h); return; }
+    if(d<=weekEnd){ groups[2].items.push(h); return; }
+    groups[3].items.push(h);
+  });
+
+  const colColor=(pr,colId)=>pr.columns?.find(c=>c.id===colId)?.color||'var(--c5)';
+  const pLabels={high:'Alta',medium:'Media',low:'Bassa'};
+  const prioColors={high:'var(--red)',medium:'var(--amber)',low:'var(--green)'};
+
+  const taskRow=h=>`
+    <div class="mytasks-item" onclick="jumpToTask('${h.task.id}','${h.proj.id}')">
+      <div class="mytasks-item-pip" style="background:${colColor(h.proj,h.task.col)}"></div>
+      <div class="mytasks-item-title">${esc(h.task.title)}</div>
+      <div class="mytasks-item-right">
+        ${h.task.priority?`<span class="pill pill-${h.task.priority}" style="font-size:10px">${pLabels[h.task.priority]}</span>`:''}
+        <span class="mytasks-item-proj">${esc(h.proj.name)}</span>
+        ${h.task.date?`<span class="pill pill-date" style="font-size:10px">${fmtDate(h.task.date)}</span>`:''}
+      </div>
+    </div>`;
+
+  let html=`
+    <div class="mytasks-header">
+      <div style="font-size:20px;font-weight:600;letter-spacing:-.4px">Le mie task</div>
+      <span class="mytasks-count">${total} task assegnate</span>
+    </div>`;
+
+  groups.filter(g=>g.items.length).forEach(g=>{
+    html+=`<div class="mytasks-group">
+      <div class="mytasks-group-head">
+        <div class="mytasks-group-label" style="color:${g.color}">${g.label}</div>
+        <span class="mytasks-group-count">${g.items.length}</span>
+      </div>
+      ${g.items.map(taskRow).join('')}
+    </div>`;
+  });
+
+  wrap.innerHTML=html;
+}
+
+function jumpToTask(taskId, projId){
+  if(projId!==S.activeId){ S.activeId=projId; save(); renderAll(); }
+  if(view!=='kanban') switchView('kanban');
+  setTimeout(()=>openPanel(taskId),120);
+}
+
 // ─── VIEW SWITCH ──────────────────────────────────────────────────────────────
 function switchView(v){
   view=v;
-  ['kanban','timeline','calendar','stats','review','history'].forEach(x=>{
+  ['kanban','timeline','calendar','stats','mytasks','review','history'].forEach(x=>{
     const ve=document.getElementById('view-'+x);if(ve)ve.classList.toggle('active',x===v);
     const te=document.getElementById('tab'+x.charAt(0).toUpperCase()+x.slice(1));if(te)te.classList.toggle('active',x===v);
   });
   if(v==='timeline')renderTimeline();
   if(v==='calendar')renderCalendar();
   if(v==='stats')renderStats();
+  if(v==='mytasks')renderMyTasks();
   if(v==='review')renderReview();
   if(v==='history')renderHistory();
 }
