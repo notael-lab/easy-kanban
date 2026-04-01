@@ -2,7 +2,7 @@
 <!--
   ╔══════════════════════════════════════════════════════════════════╗
   ║                        KANBAN PLANNER                           ║
-  ║                        Versione 1.0.0                           ║
+  ║                        Versione 1.1.0                           ║
   ╠══════════════════════════════════════════════════════════════════╣
   ║  Copyright © 2026. Tutti i diritti riservati.                   ║
   ║                                                                  ║
@@ -14,20 +14,21 @@
   ║  Reproduction, distribution or modification without explicit    ║
   ║  written consent of the author is strictly prohibited.          ║
   ╠══════════════════════════════════════════════════════════════════╣
-  ║  Funzionalità:                                                   ║
-  ║  · Kanban board multi-progetto con drag & drop                  ║
-  ║  · Timeline Gantt con milestones                                 ║
-  ║  · Vista calendario e statistiche                                ║
-  ║  · Review settimanale                                            ║
-  ║  · Automazioni configurabili                                     ║
-  ║  · Commenti e Pomodoro timer                                     ║
-  ║  · Note rapide                                                   ║
-  ║  · Crittografia AES-256-GCM                                      ║
-  ║  · PWA installabile                                              ║
-  ║  · Backup automatico giornaliero                                 ║
-  ║  · Storico attività                                              ║
-  ║  · Filtri e ricerca                                              ║
-  ║  · Condivisione via URL                                          ║
+  ║  Changelog v1.1.0:                                               ║
+  ║  · Condivisione URL con selezione viste e sola lettura           ║
+  ║  · Dettaglio task + commenti in modalità sola lettura            ║
+  ║  · Health score e % completamento in topbar                      ║
+  ║  · Task ferme con badge e filtro                                 ║
+  ║  · Snapshot avanzamento + velocity + cycle time                  ║
+  ║  · Modalità presentazione (shortcut P)                           ║
+  ║  · Review settimanale potenziata con agenda                      ║
+  ║  · Quick launcher (shortcut /)                                   ║
+  ║  · Stato vuoto migliorato nelle colonne                          ║
+  ║  · Vista "Le mie task" cross-progetto                            ║
+  ║  · Sposta task tra progetti                                      ║
+  ║  · Export CSV / Excel / PDF                                      ║
+  ║  · Milestone cross-progetto in timeline                          ║
+  ║  · Pomodoro timer, Note rapide, Review settimanale               ║
   ╚══════════════════════════════════════════════════════════════════╝
 -->
 <html lang="it" data-theme="light">
@@ -1148,26 +1149,37 @@ let readonlyProject=null; // the shared project data
 function enterReadonly(projData){
   readonlyMode=true;
   readonlyProject=projData;
-  // build a minimal state just for display
   S={projects:[projData],activeId:projData.id,log:[]};
   document.body.classList.add('readonly');
   const banner=document.getElementById('readonlyBanner');
   banner.classList.add('visible');
   document.getElementById('readonlyProjName').textContent=projData.name;
-  // restrict view tabs to allowed views only
-  const allowed=['kanban','timeline','stats','review'];
+
+  // use _views from payload, fallback to default
+  const allowed=(projData._views&&projData._views.length)
+    ? projData._views
+    : ['kanban','timeline','stats','review'];
+
+  // show only allowed tabs
   ['kanban','timeline','calendar','stats','mytasks','review','history'].forEach(v=>{
     const tab=document.getElementById('tab'+v.charAt(0).toUpperCase()+v.slice(1));
     if(tab) tab.style.display=allowed.includes(v)?'':'none';
   });
-  // hide topbar action buttons
-  document.querySelectorAll('.icon-btn').forEach(b=>{
-    if(b.id!=='readonlyThemeBtn'&&!b.title?.includes('tema')) b.style.display='none';
-  });
-  // hide only the operative controls, keep view-tabs visible
+
+  // hide operative controls
   document.getElementById('cmdbarControls').style.display='none';
   document.querySelector('.cmdbar .sep').style.display='none';
+
+  // hide topbar action buttons (keep theme toggle)
+  document.querySelectorAll('.icon-btn').forEach(b=>{
+    if(!b.title?.includes('tema')&&!b.title?.includes('Cambia tema'))
+      b.style.display='none';
+  });
+
   renderAll();
+
+  // switch to first allowed view
+  switchView(allowed[0]||'kanban');
 }
 
 function importReadonlyProject(){
@@ -1206,38 +1218,65 @@ function importReadonlyProject(){
 // ─── SHARE VIA URL ────────────────────────────────────────────────────────────
 function shareURL(){
   const p=proj(); if(!p) return;
-  // strip log/comments to reduce size, keep only essential data
-  const stripped={
-    id:p.id, name:p.name,
-    columns:p.columns,
-    tasks:p.tasks.map(t=>({...t,comments:undefined,pomodoroCount:undefined})),
-    milestones:p.milestones||[]
-  };
-  const json=JSON.stringify(stripped);
-  const compressed='r:'+URLEnc.encode(json);
-  const url=location.origin+location.pathname+'#'+compressed;
-  const sizeAfter=compressed.length;
+  closeMenu();
 
   modal('Condividi progetto',`
-    <p>Link di condivisione per <strong>${esc(p.name)}</strong>.<br>
-    Il destinatario potrà navigare in <strong>sola lettura</strong> (Kanban, Timeline, Statistiche, Review) e scegliere se importarlo.</p>
-    <span class="share-url" id="shareUrlText">${esc(url)}</span>
-    <p style="margin-top:10px;font-size:12px;color:var(--text3)">
-      Dimensione link: <strong>${sizeAfter} caratteri</strong>
-      · Il destinatario può navigare in sola lettura e scegliere se importarlo. Nessun server richiesto.
-    </p>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:13px;color:var(--text2)">
+        Condividi <strong>${esc(p.name)}</strong> in sola lettura.<br>
+        Scegli le viste accessibili al destinatario.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">Viste condivise</div>
+        ${[
+          ['kanban',  'Kanban board'],
+          ['timeline','Timeline'],
+          ['stats',   'Statistiche'],
+          ['review',  'Review'],
+          ['history', 'Storico attività']
+        ].map(([v,label])=>`
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 0;border-bottom:.5px solid var(--border)">
+            <input type="checkbox" id="sv_${v}" ${v==='kanban'?'checked disabled':'checked'}
+              style="width:15px;height:15px;cursor:pointer;accent-color:var(--acc)">
+            <span style="font-size:13px;font-weight:500">${label}</span>
+          </label>`).join('')}
+      </div>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" id="sv_comments" checked
+          style="width:15px;height:15px;cursor:pointer;accent-color:var(--acc)">
+        <span style="font-size:13px">Includi commenti delle task</span>
+      </label>
+    </div>
   `,[
     {label:'Copia link',solid:true,fn:()=>{
+      const views=['kanban','timeline','stats','review','history'].filter(v=>
+        document.getElementById('sv_'+v)?.checked
+      );
+      const inclComments=document.getElementById('sv_comments')?.checked;
+      const stripped={
+        id:p.id, name:p.name,
+        columns:p.columns,
+        tasks:p.tasks.map(t=>({
+          ...t,
+          comments: inclComments?(t.comments||[]):undefined,
+          pomodoroCount:undefined
+        })),
+        milestones:p.milestones||[],
+        _views:views  // which views are accessible
+      };
+      const url=location.origin+location.pathname+'#r:'+URLEnc.encode(JSON.stringify(stripped));
       navigator.clipboard.writeText(url)
-        .then(()=>toast('Link copiato!'))
+        .then(()=>toast('✓ Link copiato negli appunti'))
         .catch(()=>{
-          const el=document.getElementById('shareUrlText');
-          const range=document.createRange();range.selectNode(el);
-          window.getSelection().removeAllRanges();window.getSelection().addRange(range);
-          toast('Seleziona e copia manualmente');
+          // manual fallback
+          const ta=document.createElement('textarea');
+          ta.value=url;ta.style.position='fixed';ta.style.opacity='0';
+          document.body.appendChild(ta);ta.select();
+          document.execCommand('copy');document.body.removeChild(ta);
+          toast('✓ Link copiato');
         });
     }},
-    {label:'Chiudi'}
+    {label:'Annulla'}
   ]);
 }
 
@@ -1739,7 +1778,43 @@ document.addEventListener('keydown', e=>{
 
 
 function openPanel(taskId=null,defaultCol=null){
-  if(readonlyMode) return; // no editing in readonly
+  if(readonlyMode && !taskId) return; // no new tasks in readonly
+  if(readonlyMode && taskId){
+    // open read-only detail panel showing task info + comments
+    const p=proj();
+    const t=p?.tasks.find(x=>x.id===taskId); if(!t) return;
+    const comments=t.comments||[];
+    const pLabels={high:'Alta 🔴',medium:'Media 🟡',low:'Bassa 🟢'};
+    const colLabel=p.columns.find(c=>c.id===t.col)?.label||t.col;
+    modal(t.title,`
+      <div style="display:flex;flex-direction:column;gap:12px">
+        ${t.desc?`<div style="font-size:13px;color:var(--text2);line-height:1.6">${esc(t.desc)}</div>`:''}
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="pill pill-date">${colLabel}</span>
+          ${t.priority?`<span class="pill pill-${t.priority}">${pLabels[t.priority]}</span>`:''}
+          ${t.date?`<span class="pill pill-date">📅 ${fmtDate(t.date)}</span>`:''}
+          ${t.startDate?`<span class="pill pill-date">▶ ${fmtDate(t.startDate)}</span>`:''}
+        </div>
+        ${comments.length?`
+          <div style="border-top:.5px solid var(--border);padding-top:12px">
+            <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">
+              Commenti (${comments.length})
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              ${comments.map(c=>`
+                <div style="background:var(--c2);border-radius:var(--r);padding:9px 12px">
+                  <div style="font-size:10px;font-family:var(--mono);color:var(--text3);margin-bottom:4px">
+                    ${new Date(c.ts).toLocaleString('it',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}
+                  </div>
+                  <div style="font-size:13px;line-height:1.5;white-space:pre-wrap">${esc(c.text)}</div>
+                </div>`).join('')}
+            </div>
+          </div>
+        `:`<div style="font-size:13px;color:var(--text3);border-top:.5px solid var(--border);padding-top:12px">Nessun commento.</div>`}
+      </div>
+    `,[{label:'Chiudi'}]);
+    return;
+  }
   editId=taskId;const p=proj();
   const commentsSection=document.getElementById('commentsSection');
   if(taskId){
@@ -2609,8 +2684,10 @@ function jumpToTask(taskId, projId){
 // ─── VIEW SWITCH ──────────────────────────────────────────────────────────────
 function switchView(v){
   // in readonly, only allow permitted views
-  const allowed=['kanban','timeline','stats','review'];
-  if(readonlyMode && !allowed.includes(v)) return;
+  const allowed=readonlyMode
+    ? ((readonlyProject?._views?.length)?readonlyProject._views:['kanban','timeline','stats','review'])
+    : null;
+  if(allowed && !allowed.includes(v)) return;
   view=v;
   ['kanban','timeline','calendar','stats','mytasks','review','history'].forEach(x=>{
     const ve=document.getElementById('view-'+x);if(ve)ve.classList.toggle('active',x===v);
