@@ -394,6 +394,86 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .tip-bar{padding:8px 20px;font-size:12px;color:var(--text3);border-top:1px solid var(--border);}
 
+/* ── READ-ONLY MODE ── */
+.readonly-banner{
+  background:var(--blue-bg);border-bottom:1px solid rgba(0,122,255,.2);
+  padding:8px 20px;display:none;align-items:center;gap:10px;
+  font-size:13px;color:var(--blue);
+}
+[data-theme="dark"] .readonly-banner{background:rgba(10,132,255,.12);}
+.readonly-banner.visible{display:flex;}
+.readonly-badge{
+  background:var(--blue);color:#fff;
+  font-size:10px;font-weight:700;letter-spacing:.5px;
+  padding:2px 8px;border-radius:20px;font-family:var(--mono);
+  flex-shrink:0;
+}
+body.readonly .add-card-btn,
+body.readonly .add-col-btn,
+body.readonly .add-col-wrap,
+body.readonly #filterToggleBtn,
+body.readonly .kanban-sub .btn-solid,
+body.readonly .col-chev,
+body.readonly .panel-overlay,
+body.readonly .notes-panel,
+body.readonly .pomo-widget{display:none!important;}
+body.readonly .card{cursor:default!important;}
+body.readonly .card:hover{transform:none!important;box-shadow:none!important;}
+body.readonly .col-head{cursor:default!important;}
+
+/* ── HEALTH SCORE & PROGRESS BAR ── */
+.topbar-progress{display:flex;align-items:center;gap:8px;padding:0 4px;}
+.progress-bar-wrap{width:80px;height:6px;background:var(--c3);border-radius:3px;overflow:hidden;}
+.progress-bar-fill{height:100%;border-radius:3px;transition:width .4s ease,background .3s;}
+.progress-label{font-size:11px;font-family:var(--mono);font-weight:600;min-width:30px;text-align:right;}
+.health-dot{width:8px;height:8px;border-radius:50%;cursor:help;flex-shrink:0;transition:transform var(--tr);}
+.health-dot:hover{transform:scale(1.4);}
+
+/* ── STUCK BADGE ── */
+.pill-stuck{background:#fff3e0;color:#e65100;}
+[data-theme="dark"] .pill-stuck{background:#3a1a00;color:#ff9800;}
+
+/* ── PRESENTATION MODE ── */
+body.presentation .topbar,
+body.presentation .cmdbar,
+body.presentation .filter-bar,
+body.presentation .kanban-sub,
+body.presentation .tip-bar,
+body.presentation .add-card-btn,
+body.presentation .add-col-wrap,
+body.presentation .col-chev{display:none!important;}
+body.presentation{background:#1a1a1a!important;}
+body.presentation .board{padding:20px!important;gap:14px!important;align-items:stretch!important;}
+body.presentation .col{background:rgba(255,255,255,.06)!important;border-color:rgba(255,255,255,.12)!important;max-height:none!important;}
+body.presentation .col-head{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.1)!important;}
+body.presentation .col-label{color:#fff!important;font-size:14px!important;}
+body.presentation .col-count{background:rgba(255,255,255,.12)!important;color:rgba(255,255,255,.7)!important;}
+body.presentation .card{background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.1)!important;}
+body.presentation .card-title{color:#fff!important;font-size:14px!important;}
+body.presentation .card-desc{color:rgba(255,255,255,.5)!important;}
+.presentation-bar{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(10px);
+  color:#fff;padding:10px 24px;
+  z-index:500;align-items:center;gap:16px;font-size:13px;
+}
+body.presentation .presentation-bar{display:flex;}
+.pres-proj{font-weight:600;font-size:15px;}
+.pres-prog{display:flex;align-items:center;gap:8px;}
+.pres-prog-bar{width:120px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden;}
+.pres-prog-fill{height:100%;border-radius:2px;background:#34c759;}
+.pres-exit{margin-left:auto;cursor:pointer;opacity:.6;font-size:12px;}
+.pres-exit:hover{opacity:1;}
+
+/* ── SNAPSHOT ── */
+.snap-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:.5px solid var(--border);font-size:13px;}
+.snap-item:last-child{border-bottom:none;}
+.snap-delta{font-family:var(--mono);font-size:12px;font-weight:600;min-width:36px;text-align:right;}
+.snap-delta.pos{color:var(--green);}
+.snap-delta.neg{color:var(--red);}
+.snap-delta.neu{color:var(--text3);}
+
 /* ── MY TASKS VIEW ── */
 #view-mytasks{display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;}
 #view-mytasks.active{display:flex;}
@@ -524,9 +604,21 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
+<!-- READ-ONLY BANNER -->
+<div class="readonly-banner" id="readonlyBanner">
+  <span class="readonly-badge">SOLA LETTURA</span>
+  <span id="readonlyProjName"></span>
+  <span style="color:var(--text3);font-size:12px">— Puoi navigare ma non modificare. Per importare il progetto usa il pulsante a destra.</span>
+  <button class="btn btn-sm btn-solid" style="margin-left:auto;flex-shrink:0" onclick="importReadonlyProject()">
+    <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5zm7.646-6.854a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 4.707V11.5a.5.5 0 0 1-1 0V4.707L5.354 6.854a.5.5 0 1 1-.708-.708z"/></svg>
+    Importa nel mio Kanban
+  </button>
+</div>
+
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="logo"><div class="logo-mark">K</div>Kanban Planner</div>
+  <div class="topbar-progress" id="topbarProgress" title="Avanzamento progetto"></div>
   <div class="topbar-flex"></div>
   <!-- Notes -->
   <button class="icon-btn" title="Note rapide" onclick="toggleNotes()">
@@ -551,6 +643,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <!-- CMDBAR -->
 <div class="cmdbar">
+  <div id="cmdbarControls" style="display:flex;align-items:center;gap:4px;flex:0 0 auto">
   <div class="proj-wrap">
     <svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" style="opacity:.35"><path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5z"/></svg>
     <select class="proj-select" id="projectSelect"></select>
@@ -582,6 +675,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="dd-item danger" onclick="deleteProject()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3V2h11v1z"/></svg>Elimina progetto</div>
     </div>
   </div>
+  </div><!-- end cmdbarControls -->
   <div class="sep"></div>
   <div class="view-tabs">
     <button class="view-tab active" id="tabKanban" onclick="switchView('kanban')">Kanban</button>
@@ -608,6 +702,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <span class="filter-chip" data-filter="medium" onclick="toggleFilterChip(this)">Media</span>
   <span class="filter-chip" data-filter="low" onclick="toggleFilterChip(this)">Bassa</span>
   <span class="filter-chip" data-filter="overdue" onclick="toggleFilterChip(this)">Scadute</span>
+  <span class="filter-chip" data-filter="stuck" onclick="toggleFilterChip(this)">Ferme (+7g)</span>
   <span class="filter-results" id="filterResults"></span>
   <span class="filter-clear" onclick="clearFilters()">✕ Azzera</span>
 </div>
@@ -831,6 +926,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
+<!-- PRESENTATION BAR -->
+<div class="presentation-bar" id="presentationBar">
+  <span class="pres-proj" id="presProjName"></span>
+  <div class="pres-prog">
+    <div class="pres-prog-bar"><div class="pres-prog-fill" id="presProgFill"></div></div>
+    <span id="presProgLabel" style="font-family:var(--mono);font-size:12px"></span>
+  </div>
+  <span id="presDate" style="font-size:12px;opacity:.6"></span>
+  <span class="pres-exit" onclick="exitPresentation()">✕ Esci (P)</span>
+</div>
+
 <!-- QUICK LAUNCHER -->
 <div class="ql-overlay" id="qlOverlay" onclick="qlClose(event)">
   <div class="ql-box">
@@ -890,16 +996,25 @@ function migrateFromOlderVersions(){
 }
 function load(){
   try{
-    // check for shared data in URL first
     const hash=location.hash.slice(1);
     if(hash){
       try{
-        const shared=JSON.parse(decodeURIComponent(atob(hash)));
-        if(shared.projects){S=shared;}
-        else if(shared.name&&shared.tasks){S={projects:[shared],activeId:shared.id||'shared'}; S.projects[0].id=S.activeId;}
-        history.replaceState(null,'',location.pathname+location.search);
-        save();renderAll();toast('Progetto importato dal link');return;
-      }catch(e){}
+        if(hash.startsWith('r:')){
+          // readonly shared link
+          const json=URLEnc.decode(hash.slice(2));
+          const projData=JSON.parse(json);
+          history.replaceState(null,'',location.pathname+location.search);
+          enterReadonly(projData);
+          return;
+        } else {
+          // legacy plain base64 import (backwards compat)
+          const shared=JSON.parse(decodeURIComponent(atob(hash)));
+          if(shared.projects){S=shared;}
+          else if(shared.name&&shared.tasks){S={projects:[shared],activeId:shared.id||'shared'};S.projects[0].id=S.activeId;}
+          history.replaceState(null,'',location.pathname+location.search);
+          save();renderAll();toast('Progetto importato dal link');return;
+        }
+      }catch(e){console.warn('Link non valido',e);}
     }
     const r=localStorage.getItem('kp4');
     if(r)S=JSON.parse(r);
@@ -907,7 +1022,7 @@ function load(){
     if(!S.activeId||!S.projects.find(p=>p.id===S.activeId))S.activeId=S.projects[0]?.id;
   }catch{reset(true);}
 }
-function save(){localStorage.setItem('kp4',JSON.stringify(S));}
+function save(){localStorage.setItem('kp4',JSON.stringify(S));if(S.activeId)takeSnapshot(S.activeId);}
 function proj(){return S.projects.find(p=>p.id===S.activeId);}
 
 // ─── ACTIVITY LOG ────────────────────────────────────────────────────────────
@@ -971,6 +1086,7 @@ function applyFilters(){
   searchQ=document.getElementById('searchInput').value.toLowerCase().trim();
   const p=proj(); if(!p) return;
   const today=new Date(); today.setHours(0,0,0,0);
+  const stuckIds=activeFilters.has('stuck')?getStuckTasks(p).map(t=>t.id):[];
   let visible=0, total=0;
   document.querySelectorAll('.card[data-task-id]').forEach(card=>{
     const tid=card.dataset.taskId;
@@ -979,16 +1095,16 @@ function applyFilters(){
     let show=true;
     // search
     if(searchQ && !task.title.toLowerCase().includes(searchQ) && !(task.desc||'').toLowerCase().includes(searchQ)) show=false;
-    // priority filters
+    // filters
     if(show && activeFilters.size>0){
-      let matchesPrio=false, matchesOverdue=false;
-      const prioFilters=new Set([...activeFilters].filter(f=>f!=='overdue'));
+      const prioFilters=new Set([...activeFilters].filter(f=>!['overdue','stuck'].includes(f)));
       const overdueFilter=activeFilters.has('overdue');
-      if(prioFilters.size>0 && prioFilters.has(task.priority)) matchesPrio=true;
-      if(overdueFilter && task.date && new Date(task.date+'T00:00:00')<today) matchesOverdue=true;
-      if(prioFilters.size>0 && overdueFilter) show=matchesPrio||matchesOverdue;
-      else if(prioFilters.size>0) show=matchesPrio;
-      else show=matchesOverdue;
+      const stuckFilter=activeFilters.has('stuck');
+      let ok=false;
+      if(prioFilters.size>0 && prioFilters.has(task.priority)) ok=true;
+      if(overdueFilter && task.date && new Date(task.date+'T00:00:00')<today && task.col!=='done') ok=true;
+      if(stuckFilter && stuckIds.includes(task.id)) ok=true;
+      if(!ok) show=false;
     }
     card.classList.toggle('filtered-out',!show);
     if(show) visible++;
@@ -1007,31 +1123,125 @@ function applyFilters(){
   document.getElementById('filterResults').textContent=hasFilter?`${visible} / ${total} task`:'';
 }
 
+// ─── URL ENCODING (base64url, unicode-safe) ───────────────────────────────────
+const URLEnc={
+  encode(str){
+    // UTF-8 → bytes → base64url
+    const bytes=new TextEncoder().encode(str);
+    let bin='';
+    bytes.forEach(b=>bin+=String.fromCharCode(b));
+    return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+  },
+  decode(b64){
+    const s=b64.replace(/-/g,'+').replace(/_/g,'/');
+    const bin=atob(s);
+    const bytes=new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+};
+
+// ─── READ-ONLY MODE ───────────────────────────────────────────────────────────
+let readonlyMode=false;
+let readonlyProject=null; // the shared project data
+
+function enterReadonly(projData){
+  readonlyMode=true;
+  readonlyProject=projData;
+  // build a minimal state just for display
+  S={projects:[projData],activeId:projData.id,log:[]};
+  document.body.classList.add('readonly');
+  const banner=document.getElementById('readonlyBanner');
+  banner.classList.add('visible');
+  document.getElementById('readonlyProjName').textContent=projData.name;
+  // restrict view tabs to allowed views only
+  const allowed=['kanban','timeline','stats','review'];
+  ['kanban','timeline','calendar','stats','mytasks','review','history'].forEach(v=>{
+    const tab=document.getElementById('tab'+v.charAt(0).toUpperCase()+v.slice(1));
+    if(tab) tab.style.display=allowed.includes(v)?'':'none';
+  });
+  // hide topbar action buttons
+  document.querySelectorAll('.icon-btn').forEach(b=>{
+    if(b.id!=='readonlyThemeBtn'&&!b.title?.includes('tema')) b.style.display='none';
+  });
+  // hide only the operative controls, keep view-tabs visible
+  document.getElementById('cmdbarControls').style.display='none';
+  document.querySelector('.cmdbar .sep').style.display='none';
+  renderAll();
+}
+
+function importReadonlyProject(){
+  if(!readonlyProject) return;
+  modal('Importa progetto',
+    `<p>Vuoi importare <strong>${esc(readonlyProject.name)}</strong> nel tuo Kanban?<br>Verrà aggiunto come nuovo progetto, i tuoi dati non vengono modificati.</p>`,
+    [{label:'Importa',solid:true,fn:()=>{
+      // exit readonly, load real data, add project
+      readonlyMode=false;
+      document.body.classList.remove('readonly');
+      document.getElementById('readonlyBanner').classList.remove('visible');
+      document.getElementById('cmdbarControls').style.display='';
+      document.querySelector('.cmdbar .sep').style.display='';
+      // restore tabs
+      ['kanban','timeline','calendar','stats','mytasks','review','history'].forEach(v=>{
+        const tab=document.getElementById('tab'+v.charAt(0).toUpperCase()+v.slice(1));
+        if(tab) tab.style.display='';
+      });
+      // reload real localStorage data
+      const r=localStorage.getItem('kp4');
+      if(r) S=JSON.parse(r);
+      else {S={projects:[],activeId:null};reset(true);}
+      // add the shared project with a new id to avoid conflicts
+      const imported={...readonlyProject, id:'p'+Date.now()};
+      if(!imported.columns) imported.columns=JSON.parse(JSON.stringify(DCOLS));
+      if(!imported.milestones) imported.milestones=[];
+      S.projects.push(imported);
+      S.activeId=imported.id;
+      logActivity('⬆️',`Progetto <strong>${esc(imported.name)}</strong> importato da link condiviso`,imported.id);
+      save();renderAll();toast('Progetto importato!');
+      readonlyProject=null;
+    }},{label:'Annulla'}]
+  );
+}
+
 // ─── SHARE VIA URL ────────────────────────────────────────────────────────────
 function shareURL(){
   const p=proj(); if(!p) return;
-  const payload=JSON.stringify(p);
-  const b64=btoa(encodeURIComponent(payload));
-  const url=location.origin+location.pathname+'#'+b64;
+  // strip log/comments to reduce size, keep only essential data
+  const stripped={
+    id:p.id, name:p.name,
+    columns:p.columns,
+    tasks:p.tasks.map(t=>({...t,comments:undefined,pomodoroCount:undefined})),
+    milestones:p.milestones||[]
+  };
+  const json=JSON.stringify(stripped);
+  const compressed='r:'+URLEnc.encode(json);
+  const url=location.origin+location.pathname+'#'+compressed;
+  const sizeAfter=compressed.length;
+
   modal('Condividi progetto',`
-    <p>Copia questo link per condividere il progetto <strong>${esc(p.name)}</strong>.<br>Chi lo apre lo importerà automaticamente.</p>
+    <p>Link di condivisione per <strong>${esc(p.name)}</strong>.<br>
+    Il destinatario potrà navigare in <strong>sola lettura</strong> (Kanban, Timeline, Statistiche, Review) e scegliere se importarlo.</p>
     <span class="share-url" id="shareUrlText">${esc(url)}</span>
-    <p style="margin-top:10px;font-size:12px;color:var(--text3)">Il link contiene tutti i dati del progetto. Non richiede server.</p>
+    <p style="margin-top:10px;font-size:12px;color:var(--text3)">
+      Dimensione link: <strong>${sizeAfter} caratteri</strong>
+      · Il destinatario può navigare in sola lettura e scegliere se importarlo. Nessun server richiesto.
+    </p>
   `,[
     {label:'Copia link',solid:true,fn:()=>{
-      navigator.clipboard.writeText(url).then(()=>toast('Link copiato!')).catch(()=>{
-        // fallback
-        const el=document.getElementById('shareUrlText');
-        const range=document.createRange(); range.selectNode(el);
-        window.getSelection().removeAllRanges(); window.getSelection().addRange(range);
-        toast('Seleziona e copia manualmente');
-      });
+      navigator.clipboard.writeText(url)
+        .then(()=>toast('Link copiato!'))
+        .catch(()=>{
+          const el=document.getElementById('shareUrlText');
+          const range=document.createRange();range.selectNode(el);
+          window.getSelection().removeAllRanges();window.getSelection().addRange(range);
+          toast('Seleziona e copia manualmente');
+        });
     }},
     {label:'Chiudi'}
   ]);
 }
 
-// ─── PROJECTS ─────────────────────────────────────────────────────────────────
+// ─── PERSISTENCE ─────────────────────────────────────────────────────────────
 function addProject(){
   modal('Nuovo progetto','<p>Nome del progetto:</p><input id="mi" value="Nuovo progetto">',[
     {label:'Crea',solid:true,fn:()=>{
@@ -1230,7 +1440,7 @@ function handleImport(e){
 }
 
 // ─── RENDER ──────────────────────────────────────────────────────────────────
-function renderAll(){renderSelect();renderKanban();if(view==='timeline')renderTimeline();if(view==='calendar')renderCalendar();if(view==='stats')renderStats();if(view==='mytasks')renderMyTasks();if(view==='review')renderReview();if(view==='history')renderHistory();}
+function renderAll(){renderSelect();renderKanban();renderTopbarProgress();if(view==='timeline')renderTimeline();if(view==='calendar')renderCalendar();if(view==='stats')renderStats();if(view==='mytasks')renderMyTasks();if(view==='review')renderReview();if(view==='history')renderHistory();}
 function renderSelect(){
   const sel=document.getElementById('projectSelect');sel.innerHTML='';
   const sorted=[...S.projects].sort((a,b)=>a.name.localeCompare(b.name,'it'));
@@ -1269,6 +1479,7 @@ function renderKanban(){
     list.addEventListener('dragleave',()=>list.classList.remove('over'));
     list.addEventListener('drop',e=>{
       e.preventDefault();list.classList.remove('over');
+      if(readonlyMode) return;
       if(dragTask){
         const fromCol=p.columns.find(c=>c.id===dragTask.col);
         const toCol=col;
@@ -1290,7 +1501,7 @@ function renderKanban(){
 }
 
 function makeCard(task){
-  const card=document.createElement('div');card.className='card';card.draggable=true;
+  const card=document.createElement('div');card.className='card';card.draggable=!readonlyMode;
   card.dataset.taskId=task.id;
   const dc=getDateCls(task.date);
   const dateHtml=task.date?`<span class="pill pill-date${dc==='overdue'?' pill-overdue':dc==='soon'?' pill-soon':''}">${fmtDate(task.date)}</span>`:'';
@@ -1302,11 +1513,12 @@ function makeCard(task){
   const pomoCount=task.pomodoroCount||0;
   const pomoHtml=pomoCount>0?`<span class="pill pill-date" style="gap:3px">🍅 ${pomoCount}</span>`:'';
   const assignedHtml=task.assigned?`<span class="pill pill-mine">👤</span>`:'';
-  card.innerHTML=`<div class="card-title">${esc(task.title)}</div>${task.desc?`<div class="card-desc">${esc(task.desc)}</div>`:''}<div class="card-footer">${startHtml}${dateHtml}${prioHtml}${assignedHtml}${commHtml}${pomoHtml}</div>`;
+  const stuckHtml=(()=>{const p2=proj();return p2&&getStuckTasks(p2).some(t=>t.id===task.id)?`<span class="pill pill-stuck" title="In questa colonna da più di ${STUCK_DAYS} giorni">⏸ ferma</span>`:''})();
+  card.innerHTML=`<div class="card-title">${esc(task.title)}</div>${task.desc?`<div class="card-desc">${esc(task.desc)}</div>`:''}<div class="card-footer">${startHtml}${dateHtml}${prioHtml}${assignedHtml}${stuckHtml}${commHtml}${pomoHtml}</div>`;
   card.addEventListener('dblclick',()=>openPanel(task.id));
   // right-click to start pomodoro
   card.addEventListener('contextmenu',e=>{e.preventDefault();openPomodoro(task.id);});
-  card.addEventListener('dragstart',()=>{dragTask=proj().tasks.find(t=>t.id===task.id);card.classList.add('dragging');});
+  card.addEventListener('dragstart',()=>{if(readonlyMode){return;}dragTask=proj().tasks.find(t=>t.id===task.id);card.classList.add('dragging');});
   card.addEventListener('dragend',()=>card.classList.remove('dragging'));
   return card;
 }
@@ -1517,6 +1729,8 @@ document.addEventListener('keydown', e=>{
   if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
   // / → apri quick launcher
   if(e.key==='/'){e.preventDefault();qlOpen();}
+  // P → modalità presentazione
+  if(e.key==='p'||e.key==='P'){e.preventDefault();togglePresentation();}
   // N → nuova attività
   if(e.key==='n'||e.key==='N'){e.preventDefault();openPanel();}
   // F → toggle filtri
@@ -1525,6 +1739,7 @@ document.addEventListener('keydown', e=>{
 
 
 function openPanel(taskId=null,defaultCol=null){
+  if(readonlyMode) return; // no editing in readonly
   editId=taskId;const p=proj();
   const commentsSection=document.getElementById('commentsSection');
   if(taskId){
@@ -2393,10 +2608,18 @@ function jumpToTask(taskId, projId){
 
 // ─── VIEW SWITCH ──────────────────────────────────────────────────────────────
 function switchView(v){
+  // in readonly, only allow permitted views
+  const allowed=['kanban','timeline','stats','review'];
+  if(readonlyMode && !allowed.includes(v)) return;
   view=v;
   ['kanban','timeline','calendar','stats','mytasks','review','history'].forEach(x=>{
     const ve=document.getElementById('view-'+x);if(ve)ve.classList.toggle('active',x===v);
-    const te=document.getElementById('tab'+x.charAt(0).toUpperCase()+x.slice(1));if(te)te.classList.toggle('active',x===v);
+    const te=document.getElementById('tab'+x.charAt(0).toUpperCase()+x.slice(1));
+    if(te){
+      // in readonly, keep hidden tabs hidden
+      if(readonlyMode && !allowed.includes(x)) te.style.display='none';
+      else te.classList.toggle('active',x===v);
+    }
   });
   if(v==='timeline')renderTimeline();
   if(v==='calendar')renderCalendar();
@@ -2951,6 +3174,359 @@ self.addEventListener('fetch',e=>{
       .then(()=>console.log('[PWA] Service Worker registrato'))
       .catch(e=>console.warn('[PWA] SW non supportato:', e));
   }
+}
+
+// ─── HEALTH SCORE & PROGRESS ──────────────────────────────────────────────────
+function computeHealth(p){
+  if(!p||!p.tasks.length) return {score:100,pct:0,issues:[]};
+  const today=new Date(); today.setHours(0,0,0,0);
+  const total=p.tasks.length;
+  const done=p.tasks.filter(t=>t.col==='done').length;
+  const pct=Math.round(done/total*100);
+  const issues=[];
+  let score=100;
+
+  const overdue=p.tasks.filter(t=>t.date&&new Date(t.date+'T00:00:00')<today&&t.col!=='done');
+  if(overdue.length){score-=Math.min(30,overdue.length*8);issues.push(`${overdue.length} task scadut${overdue.length===1?'a':'e'}`);}
+
+  const noPrio=p.tasks.filter(t=>!t.priority&&t.col!=='done');
+  if(noPrio.length>2){score-=Math.min(15,noPrio.length*3);issues.push(`${noPrio.length} task senza priorità`);}
+
+  const stuck=getStuckTasks(p);
+  if(stuck.length){score-=Math.min(20,stuck.length*5);issues.push(`${stuck.length} task ferme`);}
+
+  const inProgress=p.tasks.filter(t=>t.col==='inprogress');
+  if(inProgress.length>5){score-=10;issues.push(`WIP elevato (${inProgress.length})`);}
+
+  const ms=(p.milestones||[]);
+  if(!ms.length&&total>5){score-=5;issues.push('nessuna milestone definita');}
+
+  return {score:Math.max(0,score), pct, issues};
+}
+
+function healthColor(score){
+  if(score>=80) return 'var(--green)';
+  if(score>=50) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+function renderTopbarProgress(){
+  const p=proj();
+  const el=document.getElementById('topbarProgress');
+  if(!el) return;
+  if(!p||!p.tasks.length){el.innerHTML='';return;}
+  const {score,pct,issues}=computeHealth(p);
+  const col=healthColor(score);
+  const tooltip=issues.length?`Health ${score}/100\n${issues.map(i=>'• '+i).join('\n')}`:`Health ${score}/100 — Progetto in ottima salute`;
+  el.innerHTML=`
+    <div class="progress-bar-wrap" title="${esc(tooltip)}">
+      <div class="progress-bar-fill" style="width:${pct}%;background:${col}"></div>
+    </div>
+    <span class="progress-label" style="color:${col}">${pct}%</span>
+    <div class="health-dot" style="background:${col}" title="${esc(tooltip)}"></div>`;
+  // update browser title
+  const overdue=p.tasks.filter(t=>{const d=t.date&&new Date(t.date+'T00:00:00');return d&&d<new Date()&&t.col!=='done';}).length;
+  document.title=overdue>0?`Kanban Planner (${overdue})`:'Kanban Planner';
+}
+
+// ─── STUCK TASKS ─────────────────────────────────────────────────────────────
+const STUCK_DAYS=7;
+function getStuckTasks(p){
+  const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-STUCK_DAYS); cutoff.setHours(0,0,0,0);
+  // Use snapshot to detect no movement — fallback: check startDate age
+  return p.tasks.filter(t=>{
+    if(t.col==='done') return false;
+    if(t.startDate){
+      const sd=new Date(t.startDate+'T00:00:00');
+      return sd<=cutoff;
+    }
+    return false;
+  });
+}
+
+// ─── SNAPSHOT AVANZAMENTO ────────────────────────────────────────────────────
+const SNAP_KEY='kp4-snapshots';
+function loadSnapshots(){try{return JSON.parse(localStorage.getItem(SNAP_KEY)||'{}');}catch{return{};}}
+function saveSnapshots(s){localStorage.setItem(SNAP_KEY,JSON.stringify(s));}
+
+function takeSnapshot(projId){
+  const pr=S.projects.find(p=>p.id===projId); if(!pr) return;
+  const snaps=loadSnapshots();
+  if(!snaps[projId]) snaps[projId]=[];
+  const today=new Date().toISOString().split('T')[0];
+  // one per day
+  if(snaps[projId].length&&snaps[projId][snaps[projId].length-1].date===today) return;
+  const byCol={};
+  pr.columns.forEach(c=>{byCol[c.id]=pr.tasks.filter(t=>t.col===c.id).length;});
+  snaps[projId].push({date:today,total:pr.tasks.length,done:pr.tasks.filter(t=>t.col==='done').length,byCol});
+  if(snaps[projId].length>60) snaps[projId]=snaps[projId].slice(-60);
+  saveSnapshots(snaps);
+}
+
+function getSnapshot(projId, daysAgo){
+  const snaps=loadSnapshots();
+  const list=snaps[projId]||[];
+  if(!list.length) return null;
+  const target=new Date(); target.setDate(target.getDate()-daysAgo);
+  const targetStr=target.toISOString().split('T')[0];
+  // find closest snapshot on or before target date
+  const candidates=list.filter(s=>s.date<=targetStr);
+  return candidates.length?candidates[candidates.length-1]:null;
+}
+
+// ─── VELOCITY & CYCLE TIME ───────────────────────────────────────────────────
+function computeVelocity(p){
+  // weekly completed task counts for last 8 weeks
+  const weeks=[];
+  for(let i=7;i>=0;i--){
+    const wEnd=new Date(); wEnd.setDate(wEnd.getDate()-i*7); wEnd.setHours(23,59,59);
+    const wStart=new Date(wEnd); wStart.setDate(wStart.getDate()-6); wStart.setHours(0,0,0,0);
+    const label=wStart.toLocaleDateString('it',{day:'numeric',month:'short'});
+    const count=p.tasks.filter(t=>{
+      if(t.col!=='done') return false;
+      const d=t.endDate||t.date; if(!d) return false;
+      const td=new Date(d+'T00:00:00');
+      return td>=wStart&&td<=wEnd;
+    }).length;
+    weeks.push({label,count});
+  }
+  return weeks;
+}
+
+function computeCycleLead(p){
+  const done=p.tasks.filter(t=>t.col==='done'&&t.startDate&&t.endDate);
+  if(!done.length) return {cycle:null,lead:null};
+  const cycles=done.map(t=>(new Date(t.endDate+'T00:00:00')-new Date(t.startDate+'T00:00:00'))/(1000*60*60*24));
+  const cycle=Math.round(cycles.reduce((a,b)=>a+b,0)/cycles.length);
+
+  const withCreate=done.filter(t=>t.createdAt&&t.endDate);
+  if(!withCreate.length) return {cycle,lead:null};
+  const leads=withCreate.map(t=>(new Date(t.endDate+'T00:00:00')-new Date(t.createdAt))/(1000*60*60*24));
+  const lead=Math.round(leads.reduce((a,b)=>a+b,0)/leads.length);
+  return {cycle,lead};
+}
+
+// ─── PRESENTATION MODE ───────────────────────────────────────────────────────
+let presentationActive=false;
+function togglePresentation(){
+  presentationActive=!presentationActive;
+  document.body.classList.toggle('presentation',presentationActive);
+  if(presentationActive){
+    if(view!=='kanban') switchView('kanban');
+    updatePresentationBar();
+    toast('Modalità presentazione — P per uscire');
+  } else {
+    document.title='Kanban Planner';
+  }
+}
+function exitPresentation(){ if(presentationActive) togglePresentation(); }
+function updatePresentationBar(){
+  const p=proj(); if(!p) return;
+  const {pct}=computeHealth(p);
+  document.getElementById('presProjName').textContent=p.name;
+  document.getElementById('presProgFill').style.width=pct+'%';
+  document.getElementById('presProgLabel').textContent=pct+'% completato';
+  document.getElementById('presDate').textContent=new Date().toLocaleDateString('it',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+// ─── ENHANCED REVIEW ─────────────────────────────────────────────────────────
+function renderReview(){
+  const p=proj(); if(!p) return;
+  const wrap=document.getElementById('reviewWrap');
+  const today=new Date(); today.setHours(0,0,0,0);
+  const dayOfWeek=(today.getDay()+6)%7;
+  const weekStart=new Date(today); weekStart.setDate(today.getDate()-dayOfWeek);
+  const weekEnd=new Date(weekStart); weekEnd.setDate(weekStart.getDate()+6);
+  const fmt=d=>d.toLocaleDateString('it',{day:'numeric',month:'short'});
+  const inWeek=ds=>{if(!ds)return false;const d=new Date(ds+'T00:00:00');return d>=weekStart&&d<=weekEnd;};
+
+  const completedThisWeek=p.tasks.filter(t=>t.col==='done'&&(inWeek(t.endDate)||inWeek(t.date)));
+  const overdue=p.tasks.filter(t=>t.date&&new Date(t.date+'T00:00:00')<today&&t.col!=='done');
+  const inProgress=p.tasks.filter(t=>t.col==='inprogress');
+  const stuck=getStuckTasks(p);
+  const upcoming=p.tasks.filter(t=>t.date&&t.col!=='done').sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
+  const noDate=p.tasks.filter(t=>!t.date&&t.col!=='done');
+  const {score,pct,issues}=computeHealth(p);
+  const {cycle,lead}=computeCycleLead(p);
+  const velocity=computeVelocity(p);
+  const thisWeekV=velocity[velocity.length-1]?.count||0;
+  const lastWeekV=velocity[velocity.length-2]?.count||0;
+  const snap7=getSnapshot(p.id,7);
+  const snap14=getSnapshot(p.id,14);
+
+  const colColor=cid=>p.columns.find(c=>c.id===cid)?.color||'var(--c5)';
+  const colLabel=cid=>p.columns.find(c=>c.id===cid)?.label||cid;
+  const pLabels={high:'🔴 Alta',medium:'🟡 Media',low:'🟢 Bassa'};
+
+  const taskRow=t=>`
+    <div class="review-task" onclick="openPanel('${t.id}');switchView('kanban')">
+      <div class="review-task-pip" style="background:${colColor(t.col)}"></div>
+      <div class="review-task-title">${esc(t.title)}</div>
+      <div class="review-task-meta">${t.priority?pLabels[t.priority]+' · ':''} ${t.date?fmtDate(t.date):colLabel(t.col)}</div>
+    </div>`;
+
+  // Agenda punti
+  const agenda=[];
+  if(overdue.length) agenda.push({icon:'🔴',text:`<strong>${overdue.length} task scadut${overdue.length===1?'a':'e'}</strong> da gestire`});
+  if(stuck.length) agenda.push({icon:'⏸',text:`<strong>${stuck.length} task ferme</strong> da più di ${STUCK_DAYS} giorni`});
+  const msImminenti=(p.milestones||[]).filter(m=>{if(!m.date)return false;const d=new Date(m.date+'T00:00:00');return d>=today&&(d-today)/(1000*60*60*24)<=14;});
+  if(msImminenti.length) agenda.push({icon:'◆',text:`<strong>${msImminenti.length} milestone</strong> nei prossimi 14 giorni: ${msImminenti.map(m=>esc(m.label)+' ('+fmtDate(m.date)+')').join(', ')}`});
+  const highNoDt=p.tasks.filter(t=>t.priority==='high'&&!t.date&&t.col!=='done');
+  if(highNoDt.length) agenda.push({icon:'⚠️',text:`<strong>${highNoDt.length} task Alta priorità</strong> senza data di scadenza`});
+  if(inProgress.length>5) agenda.push({icon:'⚡',text:`<strong>WIP elevato:</strong> ${inProgress.length} task in corso contemporaneamente`});
+  if(completedThisWeek.length) agenda.push({icon:'✅',text:`<strong>${completedThisWeek.length} task completate</strong> questa settimana`});
+  if(!agenda.length) agenda.push({icon:'👍',text:'Nessun punto critico — il progetto procede bene'});
+
+  // Velocity mini-chart (SVG)
+  const maxV=Math.max(...velocity.map(w=>w.count),1);
+  const vBars=velocity.map((w,i)=>{
+    const h=Math.max(2,Math.round(w.count/maxV*40));
+    const isLast=i===velocity.length-1;
+    return `<rect x="${i*14}" y="${40-h}" width="10" height="${h}" rx="2" fill="${isLast?'var(--blue)':'var(--c3)'}"/>`;
+  }).join('');
+  const velocitySVG=`<svg width="${velocity.length*14}" height="40" viewBox="0 0 ${velocity.length*14} 40">${vBars}</svg>`;
+
+  // Snapshot delta
+  const snapDelta=(current,snap,label)=>{
+    if(!snap) return '';
+    const delta=current-snap.total;
+    const doneDelta=(p.tasks.filter(t=>t.col==='done').length)-snap.done;
+    return `<div class="snap-item">
+      <span style="color:var(--text2);flex:1">${label}</span>
+      <span class="snap-delta ${delta>0?'pos':delta<0?'neg':'neu'}">${delta>0?'+':''}${delta} task</span>
+      <span class="snap-delta ${doneDelta>0?'pos':doneDelta<0?'neg':'neu'}" style="margin-left:8px">${doneDelta>0?'+':''}${doneDelta} completate</span>
+    </div>`;
+  };
+
+  wrap.innerHTML=`
+    <div class="review-header">
+      <div>
+        <div style="font-size:20px;font-weight:600;letter-spacing:-.4px">Review — ${esc(p.name)}</div>
+        <div class="review-week">${fmt(weekStart)} – ${fmt(weekEnd)}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" onclick="togglePresentation()">
+          <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor"><path d="M1.5 1h13A1.5 1.5 0 0 1 16 2.5v8A1.5 1.5 0 0 1 14.5 12H9v1h2.5a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1H7v-1H1.5A1.5 1.5 0 0 1 0 10.5v-8A1.5 1.5 0 0 1 1.5 1zm0 1a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-13z"/></svg>
+          Presenta
+        </button>
+        <button class="btn btn-sm btn-solid" onclick="openPanel()">+ Nuova attività</button>
+      </div>
+    </div>
+
+    <!-- KPI row -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px">
+      <div class="stat-card">
+        <div class="stat-value" style="color:${healthColor(score)}">${score}</div>
+        <div class="stat-label">Health score</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${pct}%</div>
+        <div class="stat-label">Completamento</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--red)">${overdue.length}</div>
+        <div class="stat-label">Task scadute</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${thisWeekV}</div>
+        <div class="stat-label">Velocity sett.</div>
+        <div class="stat-sub">${lastWeekV} la scorsa</div>
+      </div>
+      ${cycle!==null?`<div class="stat-card"><div class="stat-value">${cycle}g</div><div class="stat-label">Cycle time</div></div>`:''}
+    </div>
+
+    <!-- Agenda -->
+    <div class="review-section">
+      <div class="review-section-head">
+        <span class="review-section-icon">📋</span>
+        <span class="review-section-title">Agenda di review</span>
+        <span class="review-section-count">${agenda.length} punti</span>
+      </div>
+      <div class="review-section-body" style="gap:0">
+        ${agenda.map(a=>`<div class="review-task" style="cursor:default">
+          <span style="font-size:16px;flex-shrink:0">${a.icon}</span>
+          <span style="font-size:13px;line-height:1.4">${a.text}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Velocity -->
+    <div class="review-section">
+      <div class="review-section-head">
+        <span class="review-section-icon">📈</span>
+        <span class="review-section-title">Velocity (ultime 8 settimane)</span>
+        <span class="review-section-count">media ${Math.round(velocity.reduce((a,w)=>a+w.count,0)/velocity.length*10)/10}/sett</span>
+      </div>
+      <div style="padding:14px 18px;display:flex;align-items:flex-end;gap:12px">
+        ${velocitySVG}
+        <div style="font-size:12px;color:var(--text3);line-height:1.6">
+          Questa settimana: <strong style="color:var(--text)">${thisWeekV}</strong><br>
+          Scorsa settimana: <strong style="color:var(--text)">${lastWeekV}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Snapshot -->
+    ${(snap7||snap14)?`<div class="review-section">
+      <div class="review-section-head">
+        <span class="review-section-icon">📊</span>
+        <span class="review-section-title">Avanzamento rispetto a</span>
+      </div>
+      <div style="padding:10px 18px">
+        ${snapDelta(p.tasks.length,snap7,'7 giorni fa')}
+        ${snapDelta(p.tasks.length,snap14,'14 giorni fa')}
+      </div>
+    </div>`:''}
+
+    <!-- Task sezioni -->
+    <div class="review-section">
+      <div class="review-section-head"><span class="review-section-icon">✅</span>
+        <span class="review-section-title">Completate questa settimana</span>
+        <span class="review-section-count">${completedThisWeek.length}</span>
+      </div>
+      <div class="review-section-body">
+        ${completedThisWeek.length?completedThisWeek.map(taskRow).join(''):'<div class="review-empty">Nessuna task completata questa settimana.</div>'}
+      </div>
+    </div>
+
+    ${stuck.length?`<div class="review-section">
+      <div class="review-section-head"><span class="review-section-icon">⏸</span>
+        <span class="review-section-title">Task ferme</span>
+        <span class="review-section-count">${stuck.length}</span>
+      </div>
+      <div class="review-section-body">${stuck.map(taskRow).join('')}</div>
+    </div>`:''}
+
+    <div class="review-section">
+      <div class="review-section-head"><span class="review-section-icon">🔴</span>
+        <span class="review-section-title">Scadute e non completate</span>
+        <span class="review-section-count">${overdue.length}</span>
+      </div>
+      <div class="review-section-body">
+        ${overdue.length?overdue.map(taskRow).join(''):'<div class="review-empty">Nessuna task scaduta. Ottimo!</div>'}
+      </div>
+    </div>
+
+    <div class="review-section">
+      <div class="review-section-head"><span class="review-section-icon">🔜</span>
+        <span class="review-section-title">Prossime scadenze</span>
+        <span class="review-section-count">${upcoming.length}</span>
+      </div>
+      <div class="review-section-body">
+        ${upcoming.length?upcoming.map(taskRow).join(''):'<div class="review-empty">Nessuna task con scadenza futura.</div>'}
+      </div>
+    </div>
+
+    <div class="review-section">
+      <div class="review-section-head"><span class="review-section-icon">⚙️</span>
+        <span class="review-section-title">In corso</span>
+        <span class="review-section-count">${inProgress.length}</span>
+      </div>
+      <div class="review-section-body">
+        ${inProgress.length?inProgress.map(taskRow).join(''):'<div class="review-empty">Nessuna task in corso.</div>'}
+      </div>
+    </div>
+  `;
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
