@@ -2,7 +2,7 @@
 <!--
   ╔══════════════════════════════════════════════════════════════════╗
   ║                        KANBAN PLANNER                           ║
-  ║                        Versione 1.1.0                           ║
+  ║                        Versione 1.2.0                           ║
   ╠══════════════════════════════════════════════════════════════════╣
   ║  Copyright © 2026. Tutti i diritti riservati.                   ║
   ║                                                                  ║
@@ -553,37 +553,6 @@ body.presentation .presentation-bar{display:flex;}
 .col-empty-text{font-size:12px;line-height:1.4;}
 .col-empty-cta{font-size:12px;font-weight:500;color:var(--text2);}
 
-/* ── PRINT / PDF ── */
-@media print {
-  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
-  .topbar,.cmdbar,.filter-bar,.kanban-sub,.tip-bar,
-  .panel,.panel-overlay,.notes-panel,.notes-panel+.panel-overlay,
-  .pomo-widget,.modal-bg,.toast,#lockScreen,
-  .add-card-btn,.add-col-wrap,.add-col-btn,
-  .col-chev,.col-count{display:none!important;}
-  body{background:#fff!important;font-size:11pt;color:#000;}
-  .main{overflow:visible!important;}
-  #view-kanban,#view-kanban.active{display:block!important;overflow:visible!important;}
-  .board{display:flex!important;flex-wrap:wrap!important;gap:12pt!important;overflow:visible!important;padding:0!important;align-items:flex-start;}
-  .col{min-width:160pt!important;max-width:180pt!important;max-height:none!important;break-inside:avoid;border:1px solid #ccc!important;border-radius:6pt!important;background:#fff!important;box-shadow:none!important;margin-bottom:12pt;}
-  .col-head{border-bottom:1px solid #eee!important;padding:8pt 10pt!important;}
-  .col-label{font-size:10pt!important;font-weight:700!important;}
-  .cards{padding:6pt 8pt!important;gap:6pt!important;}
-  .card{border:1px solid #ddd!important;border-radius:4pt!important;padding:7pt 9pt!important;break-inside:avoid;box-shadow:none!important;background:#fff!important;}
-  .card-title{font-size:9.5pt!important;font-weight:600!important;}
-  .card-desc{font-size:8.5pt!important;color:#555!important;}
-  .pill{font-size:7.5pt!important;padding:1pt 5pt!important;}
-  /* print header */
-  body::before{
-    content:attr(data-print-title);
-    display:block;
-    font-size:16pt;font-weight:700;margin-bottom:4pt;
-  }
-  body::after{
-    content:attr(data-print-date);
-    display:block;font-size:8pt;color:#888;margin-bottom:16pt;
-  }
-}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--c3);border-radius:3px;}
@@ -664,12 +633,12 @@ body.presentation .presentation-bar{display:flex;}
       <div class="dd-sep"></div>
       <div class="dd-item" onclick="exportJSON()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5zm7.646 1.954a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg>Esporta JSON</div>
       <div class="dd-item" onclick="exportCSV()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/><path d="M4.5 12.5A.5.5 0 0 1 5 12h1.5a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0-2A.5.5 0 0 1 5 10h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm0-2A.5.5 0 0 1 5 8h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5z"/></svg>Esporta CSV / Excel</div>
-      <div class="dd-item" onclick="exportPDF()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5h-2z"/><path d="M5.523 11.5h1.314l.33-1h1.666l.33 1h1.314l-1.67-5h-1.625l-1.659 5zm1.87-2 .532-1.617h.052L8.51 9.5H7.393z"/></svg>Esporta PDF</div>
       <div class="dd-item" onclick="importJSON()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5zm7.646-6.854a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 4.707V11.5a.5.5 0 0 1-1 0V4.707L5.354 6.854a.5.5 0 1 1-.708-.708z"/></svg>Importa JSON</div>
       <div class="dd-sep"></div>
       <div class="dd-item" onclick="resetToExample()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg>Ripristina esempio</div>
       <div class="dd-sep"></div>
       <div class="dd-item" onclick="openAutomations()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5 8 5.961 14.154 3.5 8.186 1.113zM15 4.239l-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/></svg>Automazioni</div>
+      <div class="dd-item" onclick="openStuckSettings()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>Attività ferme</div>
       <div class="dd-item" onclick="openBackups()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M3.5 6a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 1 0-1h2A1.5 1.5 0 0 1 14 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-8A1.5 1.5 0 0 1 3.5 5h2a.5.5 0 0 1 0 1h-2z"/><path d="M7.646.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 1.707V10.5a.5.5 0 0 1-1 0V1.707L5.354 3.854a.5.5 0 1 1-.708-.708l3-3z"/></svg>Backup e ripristino</div>
       <div class="dd-item" onclick="openPasswordSettings()"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>Password e crittografia</div>
       <div class="dd-sep"></div>
@@ -1417,50 +1386,6 @@ function doExportCSVFile(){
   toast('CSV esportato');
 }
 
-function exportPDF(){
-  closeMenu();const p=proj();if(!p)return;
-
-  modal('Esporta PDF',`
-    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Scegli cosa stampare per il progetto <strong>${esc(p.name)}</strong>.</p>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      <button class="btn btn-solid" onclick="closeModal();doPrintBoard()" style="justify-content:center">
-        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5zm8 0A1.5 1.5 0 0 1 10.5 9h3A1.5 1.5 0 0 1 15 10.5v3A1.5 1.5 0 0 1 13.5 15h-3A1.5 1.5 0 0 1 9 13.5z"/></svg>
-        Stampa Board Kanban
-      </button>
-      <button class="btn" onclick="closeModal();doPrintTimeline()" style="justify-content:center">
-        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>
-        Stampa Timeline
-      </button>
-    </div>
-    <p style="font-size:11px;color:var(--text3);margin-top:12px">Si aprirà la finestra di stampa del browser. Seleziona "Salva come PDF" per ottenere un file PDF.</p>
-  `,[{label:'Annulla'}]);
-}
-
-function doPrintBoard(){
-  // ensure kanban view is active
-  if(view!=='kanban') switchView('kanban');
-  const p=proj();
-  document.body.dataset.printTitle=p?.name||'Kanban';
-  document.body.dataset.printDate='Esportato il '+new Date().toLocaleDateString('it',{day:'numeric',month:'long',year:'numeric'});
-  // expand all collapsed columns temporarily
-  const collapsed=document.querySelectorAll('.col.collapsed');
-  collapsed.forEach(c=>c.classList.remove('collapsed'));
-  setTimeout(()=>{
-    window.print();
-    // restore collapsed state
-    setTimeout(()=>collapsed.forEach(c=>c.classList.add('collapsed')),500);
-  },120);
-  logActivity('🖨️','Board esportata come PDF');
-}
-
-function doPrintTimeline(){
-  if(view!=='timeline') switchView('timeline');
-  const p=proj();
-  document.body.dataset.printTitle=(p?.name||'Kanban')+' — Timeline';
-  document.body.dataset.printDate='Esportato il '+new Date().toLocaleDateString('it',{day:'numeric',month:'long',year:'numeric'});
-  setTimeout(()=>window.print(),200);
-  logActivity('🖨️','Timeline esportata come PDF');
-}
 function importJSON(){closeMenu();document.getElementById('importInput').click();}
 function handleImport(e){
   const f=e.target.files[0];if(!f)return;
@@ -1494,7 +1419,17 @@ function renderKanban(){
   const fc=document.getElementById('fCol');fc.innerHTML='';
   p.columns.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.label;fc.appendChild(o);});
   p.columns.forEach(col=>{
-    const tasks=p.tasks.filter(t=>t.col===col.id);
+    const prioOrder={high:0,medium:1,low:2,'':3};
+    const tasks=p.tasks
+      .filter(t=>t.col===col.id)
+      .sort((a,b)=>{
+        const po=(prioOrder[a.priority]??3)-(prioOrder[b.priority]??3);
+        if(po!==0) return po;
+        if(a.date&&b.date) return a.date.localeCompare(b.date);
+        if(a.date) return -1;
+        if(b.date) return 1;
+        return 0;
+      });
     const el=document.createElement('div');el.className='col';el.dataset.col=col.id;
     el.innerHTML=`<div class="col-head" onclick="colToggle(this)"><div class="col-pip" style="background:${col.color}"></div><div class="col-label">${esc(col.label)}</div><span class="col-count">${tasks.length}</span><span class="col-chev">▼</span></div><div class="cards drop-zone" data-col="${col.id}"></div>`;
     const list=el.querySelector('.cards');
@@ -1552,7 +1487,7 @@ function makeCard(task){
   const pomoCount=task.pomodoroCount||0;
   const pomoHtml=pomoCount>0?`<span class="pill pill-date" style="gap:3px">🍅 ${pomoCount}</span>`:'';
   const assignedHtml=task.assigned?`<span class="pill pill-mine">👤</span>`:'';
-  const stuckHtml=(()=>{const p2=proj();return p2&&getStuckTasks(p2).some(t=>t.id===task.id)?`<span class="pill pill-stuck" title="In questa colonna da più di ${STUCK_DAYS} giorni">⏸ ferma</span>`:''})();
+  const stuckHtml=(()=>{const p2=proj();return p2&&getStuckTasks(p2).some(t=>t.id===task.id)?`<span class="pill pill-stuck" title="In questa colonna da più di ${getStuckDays()} giorni">⏸ ferma</span>`:''})();
   card.innerHTML=`<div class="card-title">${esc(task.title)}</div>${task.desc?`<div class="card-desc">${esc(task.desc)}</div>`:''}<div class="card-footer">${startHtml}${dateHtml}${prioHtml}${assignedHtml}${stuckHtml}${commHtml}${pomoHtml}</div>`;
   card.addEventListener('dblclick',()=>openPanel(task.id));
   // right-click to start pomodoro
@@ -2044,23 +1979,35 @@ function renderTimeline(){
   for(let i=0;i<periods.length-1;i++)html+=`<div class="tl-period">${pLabel(periods[i])}</div>`;
   html+=`</div>`;
 
-  // task bars (progetto corrente)
-  tasks.forEach(t=>{
-    const color=colColor(t.col);
-    let barHtml='';
-    if(t.startDate&&t.date){
-      const x1=posOf(t.startDate), x2=posOf(t.date);
-      const w=Math.max(8,x2-x1);
-      barHtml=`<div style="position:absolute;left:${x1}px;top:50%;transform:translateY(-50%);width:${w}px;height:18px;border-radius:4px;background:${color};opacity:.85" title="${esc(t.title)}: ${t.startDate} → ${t.date}"></div>
-               <div style="position:absolute;left:${x2-3}px;top:50%;transform:translateY(-50%);width:6px;height:24px;border-radius:3px;background:${color}" title="Scadenza: ${t.date}"></div>`;
-    } else if(t.startDate){
-      const x=posOf(t.startDate);
-      barHtml=`<div style="position:absolute;left:${x-5}px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:${color};opacity:.7" title="Inizio: ${t.startDate}"></div>`;
-    } else if(t.date){
-      const x=posOf(t.date);
-      barHtml=`<div style="position:absolute;left:${x-4}px;top:50%;transform:translateY(-50%);width:8px;height:20px;border-radius:3px;background:${color}" title="${esc(t.title)} — scadenza: ${t.date}"></div>`;
-    }
-    html+=`<div class="tl-row"><div class="tl-lbl" title="${esc(t.title)}">${esc(t.title)}</div><div class="tl-track" style="min-width:${totalW}px">${todayLine}${barHtml}</div></div>`;
+  // task bars raggruppati per colonna (stato)
+  p.columns.forEach(col=>{
+    const colTasks=tasks.filter(t=>t.col===col.id);
+    if(!colTasks.length) return;
+    const color=col.color||'var(--c5)';
+    // sezione header
+    html+=`<div class="tl-row" style="min-height:28px">
+      <div class="tl-lbl" style="display:flex;align-items:center;gap:6px">
+        <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></span>
+        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:${color}">${esc(col.label)}</span>
+      </div>
+      <div class="tl-track" style="min-width:${totalW}px;background:${color}12;border-left:2px solid ${color}40">${todayLine}</div>
+    </div>`;
+    colTasks.forEach(t=>{
+      let barHtml='';
+      if(t.startDate&&t.date){
+        const x1=posOf(t.startDate), x2=posOf(t.date);
+        const w=Math.max(8,x2-x1);
+        barHtml=`<div style="position:absolute;left:${x1}px;top:50%;transform:translateY(-50%);width:${w}px;height:18px;border-radius:4px;background:${color};opacity:.85" title="${esc(t.title)}: ${t.startDate} → ${t.date}"></div>
+                 <div style="position:absolute;left:${x2-3}px;top:50%;transform:translateY(-50%);width:6px;height:24px;border-radius:3px;background:${color}" title="Scadenza: ${t.date}"></div>`;
+      } else if(t.startDate){
+        const x=posOf(t.startDate);
+        barHtml=`<div style="position:absolute;left:${x-5}px;top:50%;transform:translateY(-50%);width:10px;height:10px;border-radius:50%;background:${color};opacity:.7" title="Inizio: ${t.startDate}"></div>`;
+      } else if(t.date){
+        const x=posOf(t.date);
+        barHtml=`<div style="position:absolute;left:${x-4}px;top:50%;transform:translateY(-50%);width:8px;height:20px;border-radius:3px;background:${color}" title="${esc(t.title)} — scadenza: ${t.date}"></div>`;
+      }
+      html+=`<div class="tl-row"><div class="tl-lbl" style="padding-left:20px;font-size:12px" title="${esc(t.title)}">${esc(t.title)}</div><div class="tl-track" style="min-width:${totalW}px">${todayLine}${barHtml}</div></div>`;
+    });
   });
 
   // milestone row — progetto corrente
@@ -2590,7 +2537,7 @@ function renderMyTasks(){
   const all=[];
   S.projects.forEach(pr=>{
     (pr.tasks||[]).forEach(t=>{
-      if(t.assigned) all.push({task:t, proj:pr});
+      if(t.assigned && t.col!=='done') all.push({task:t, proj:pr});
     });
   });
 
@@ -3307,10 +3254,10 @@ function renderTopbarProgress(){
 }
 
 // ─── STUCK TASKS ─────────────────────────────────────────────────────────────
-const STUCK_DAYS=7;
+function getStuckDays(){ return parseInt(localStorage.getItem('kp4-stuck-days')||'7'); }
 function getStuckTasks(p){
-  const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-STUCK_DAYS); cutoff.setHours(0,0,0,0);
-  // Use snapshot to detect no movement — fallback: check startDate age
+  const days=getStuckDays();
+  const cutoff=new Date(); cutoff.setDate(cutoff.getDate()-days); cutoff.setHours(0,0,0,0);
   return p.tasks.filter(t=>{
     if(t.col==='done') return false;
     if(t.startDate){
@@ -3319,6 +3266,35 @@ function getStuckTasks(p){
     }
     return false;
   });
+}
+
+function openStuckSettings(){
+  closeMenu();
+  const cur=getStuckDays();
+  modal('Attività ferme',`
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:13px;color:var(--text2)">
+        Un'attività è considerata <strong>ferma</strong> quando non si sposta da una colonna per più di N giorni dalla data di inizio.
+      </div>
+      <div class="field">
+        <label>Giorni di inattività</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="number" id="stuckDaysInput" min="1" max="90" value="${cur}" style="width:80px">
+          <div style="display:flex;gap:6px">
+            ${[3,7,14,30].map(d=>`<button class="btn btn-sm" onclick="document.getElementById('stuckDaysInput').value=${d}">${d}g</button>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `,[
+    {label:'Salva',solid:true,fn:()=>{
+      const v=parseInt(document.getElementById('stuckDaysInput').value)||7;
+      localStorage.setItem('kp4-stuck-days',v);
+      toast(`Soglia aggiornata: ${v} giorni`);
+      renderAll();
+    }},
+    {label:'Annulla'}
+  ]);
 }
 
 // ─── SNAPSHOT AVANZAMENTO ────────────────────────────────────────────────────
@@ -3445,7 +3421,7 @@ function renderReview(){
   // Agenda punti
   const agenda=[];
   if(overdue.length) agenda.push({icon:'🔴',text:`<strong>${overdue.length} task scadut${overdue.length===1?'a':'e'}</strong> da gestire`});
-  if(stuck.length) agenda.push({icon:'⏸',text:`<strong>${stuck.length} task ferme</strong> da più di ${STUCK_DAYS} giorni`});
+  if(stuck.length) agenda.push({icon:'⏸',text:`<strong>${stuck.length} task ferme</strong> da più di ${getStuckDays()} giorni`});
   const msImminenti=(p.milestones||[]).filter(m=>{if(!m.date)return false;const d=new Date(m.date+'T00:00:00');return d>=today&&(d-today)/(1000*60*60*24)<=14;});
   if(msImminenti.length) agenda.push({icon:'◆',text:`<strong>${msImminenti.length} milestone</strong> nei prossimi 14 giorni: ${msImminenti.map(m=>esc(m.label)+' ('+fmtDate(m.date)+')').join(', ')}`});
   const highNoDt=p.tasks.filter(t=>t.priority==='high'&&!t.date&&t.col!=='done');
