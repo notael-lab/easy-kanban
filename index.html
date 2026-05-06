@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <!--
   ╔══════════════════════════════════════════════════════════════════╗
@@ -1985,14 +1986,15 @@ function renderTimeline(){
     if(!colTasks.length) return;
     const color=col.color||'var(--c5)';
     // sezione header
-    html+=`<div class="tl-row" style="min-height:28px">
-      <div class="tl-lbl" style="display:flex;align-items:center;gap:6px">
-        <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></span>
-        <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:${color}">${esc(col.label)}</span>
-      </div>
-      <div class="tl-track" style="min-width:${totalW}px;background:${color}12;border-left:2px solid ${color}40">${todayLine}</div>
-    </div>`;
+    // html+=`<div class="tl-row" style="min-height:28px">
+    //   <div class="tl-lbl" style="display:flex;align-items:center;gap:6px">
+    //     <span style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></span>
+    //     <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:${color}">${esc(col.label)}</span>
+    //   </div>
+    //   <div class="tl-track" style="min-width:${totalW}px;background:${color}12;border-left:2px solid ${color}40">${todayLine}</div>
+    // </div>`;
     colTasks.forEach(t=>{
+        if(t.col=="done" || t.col=="todo") return; 
       let barHtml='';
       if(t.startDate&&t.date){
         const x1=posOf(t.startDate), x2=posOf(t.date);
